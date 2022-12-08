@@ -16,12 +16,12 @@
     <img src="https://img.shields.io/crates/v/solwalrs.svg">
   </a>
 <br>
-<a href="https://github.com/aleecers/solwalrs/actions/workflows/ci.yml">
-  <img src="https://github.com/aleecers/solwalrs/actions/workflows/ci.yml/badge.svg" alt="Continuous Integration">
+<a href="https://github.com/TheAwiteb/solwalrs/actions/workflows/ci.yml">
+  <img src="https://github.com/TheAwiteb/solwalrs/actions/workflows/ci.yml/badge.svg" alt="Continuous Integration">
 </a>
 <br>
-<a href="https://github.com/aleecers/solwalrs/actions/workflows/release.yml">
-  <img src="https://github.com/aleecers/solwalrs/actions/workflows/release.yml/badge.svg" alt="Release">
+<a href="https://github.com/TheAwiteb/solwalrs/actions/workflows/release.yml">
+  <img src="https://github.com/TheAwiteb/solwalrs/actions/workflows/release.yml/badge.svg" alt="Release">
 </a>
 
 </div>
@@ -29,8 +29,10 @@
 
 ## Requirements
 - Cargo 1.62.0 or higher (https://doc.rust-lang.org/cargo/getting-started/installation.html)
+- OpenSSL (https://www.openssl.org/source/)
 
 ## Installation
+You can install solwalrs using cargo (recommended):
 ```bash
 cargo install solwalrs
 ```
