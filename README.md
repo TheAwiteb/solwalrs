@@ -3,7 +3,7 @@
 <div align="center">
     <img src="./logos/solwalrs-logo.png">
     <h1>Solwalrs</h1>
-    A simple and easy to use CLI Solana wallet
+    A simple and easy to use CLI Solana wallet<br>
 
 <a href="https://www.gnu.org/licenses/">
   <img src="https://img.shields.io/badge/license-GPLv3-orange.svg" alt="License">
@@ -59,7 +59,7 @@ Options:
 - Delete your keypair
 
 ## Our goals (roadmap)
-You can see our goals in this issue: #1
+You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)
 
 ## Safety
 Solwalrs stores your private key in a file called `solwalrs.json`[1]. This file is encrypted using Fernet (symmetric encryption) by [fernet](https://crates.io/crates/fernet) crate. The encryption key is derived from a password that you provide. The password is never stored anywhere. If you lose your password, you will lose access to your wallet. Use a password manager to generate a strong password and store it somewhere safe.
