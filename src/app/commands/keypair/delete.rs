@@ -20,6 +20,7 @@ use clap::Parser;
 use crate::errors::Result as SolwalrsResult;
 use crate::wallet::{print_table, Wallet};
 
+/// Delete a keypair
 #[derive(Parser, Debug)]
 pub struct DeleteCommand {
     /// The name of the keypair, will use the default keypair if not provided
