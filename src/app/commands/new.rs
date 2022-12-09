@@ -30,7 +30,7 @@ use crate::wallet::Wallet;
 pub struct NewCommand {
     /// The name of the keypair
     pub name: String,
-    /// To male the keypair the default keypair
+    /// To make the keypair the default keypair
     ///
     /// Note: if you have a default keypair, it will be replaced by the new keypair
     #[clap(short, long)]
