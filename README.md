@@ -67,6 +67,7 @@ Options:
 
 ## Features
 - Supports multiple keypairs
+- Possibility to mark some keypair as default keypair
 - Create a new keypair
 - View your keypairs
 - Delete your keypair
