@@ -32,10 +32,21 @@
 - OpenSSL (https://www.openssl.org/source/)
 
 ## Installation
+### Using cargo
 You can install solwalrs using cargo (recommended):
 ```bash
 cargo install solwalrs
 ```
+After installing, you can run solwalrs using `solwalrs` command. If you get an error, make sure that your `PATH` environment variable contains the directory where cargo installs binaries. You can find the binary directory here:
+`$HOME/.cargo/bin`
+### Building from source
+```bash
+git clone https://github.com/TheAwiteb/solwalrs.git
+cd solwalrs
+cargo build --release
+```
+After building, the binary will be located at `target/release/solwalrs`, you can copy it to your `PATH` or run it directly from the `target/release` directory.
+
 
 ## Usage
 ```bash
