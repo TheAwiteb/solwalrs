@@ -37,6 +37,10 @@ pub struct AppArgs {
 pub enum Commands {
     #[clap(subcommand, visible_alias = "kp")]
     Keypair(keypair::KeypairCommand),
+    #[clap(visible_alias = "n")]
+    New(NewCommand),
+    #[clap(visible_alias = "ls")]
+    List(ListCommand),
 }
 
 #[derive(Parser, Debug)]

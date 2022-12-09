@@ -17,9 +17,12 @@
 use base58::ToBase58;
 use clap::Parser;
 
+use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
+use crate::utils;
 use crate::wallet::{print_table, KeyPair, Wallet};
 
+/// List all keypairs
 #[derive(Parser, Debug)]
 pub struct ListCommand {
     /// The number of keypairs to list (default: all keypairs)
@@ -92,7 +95,9 @@ fn list_keypair_by_name(
 impl ListCommand {
     /// Run the list command, will return list of keypairs
     #[must_use = "listing keypairs will return list of keypairs"]
-    pub fn run(&self, wallet: Wallet) -> SolwalrsResult<()> {
+    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+        let password = utils::get_password()?;
+        let wallet = Wallet::load(&password, args)?;
         let keypairs_len = wallet.keypairs.len();
         if keypairs_len != 0 {
             let mut header = vec!["Name", "Public Key (Address)"];

@@ -15,12 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 mod delete;
-mod list;
-mod new;
 
-pub use delete::*;
-pub use list::*;
-pub use new::*;
+pub use delete::DeleteCommand;
 
 use crate::{errors::Result as SolwalrsResult, utils, wallet::Wallet};
 
@@ -31,12 +27,6 @@ use crate::app::AppArgs;
 /// Commands for managing a keypair
 #[derive(Subcommand, Debug)]
 pub enum KeypairCommand {
-    /// Generate a new keypair
-    #[clap(visible_alias = "n")]
-    New(NewCommand),
-    /// List all keypairs
-    #[clap(visible_alias = "ls")]
-    List(ListCommand),
     /// Delete a keypair
     #[clap(visible_alias = "D")]
     Delete(DeleteCommand),
@@ -50,13 +40,6 @@ impl KeypairCommand {
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;
         match self {
-            New(command) => {
-                command.run(&mut wallet, args)?;
-                wallet.export(&password, args)?;
-            }
-            List(command) => {
-                command.run(wallet)?;
-            }
             Delete(command) => {
                 command.run(&mut wallet)?;
                 wallet.export(&password, args)?;

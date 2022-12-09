@@ -19,11 +19,13 @@ use clap::Parser;
 
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
+use crate::utils;
 use crate::wallet::app_file_path;
 use crate::wallet::print_table;
 use crate::wallet::KeyPair;
 use crate::wallet::Wallet;
 
+/// Generate a new keypair
 #[derive(Parser, Debug)]
 pub struct NewCommand {
     /// The name of the keypair
@@ -33,7 +35,9 @@ pub struct NewCommand {
 impl NewCommand {
     /// Create a new keypair, and retutn the public key
     #[must_use = "creating a new keypair will return the public key"]
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+        let password = utils::get_password()?;
+        let mut wallet = Wallet::load(&password, args)?;
         let new_keypair = KeyPair::new(&self.name);
         let str_public_key = new_keypair.public_key.as_bytes().to_base58();
         let private_key = new_keypair.private_key.clone();
@@ -47,6 +51,6 @@ impl NewCommand {
             vec!["Name", "Public Key (Address)", "Private Key"],
             vec![vec![&self.name, &str_public_key, &private_key]],
         );
-        Ok(())
+        wallet.export(&password, args)
     }
 }

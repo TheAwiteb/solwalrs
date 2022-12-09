@@ -31,6 +31,8 @@ fn try_main() -> SolwalrsResult<()> {
         use app::Commands::*;
         match command {
             Keypair(keypair_command) => keypair_command.run(&app.args)?,
+            New(new_command) => new_command.run(&app.args)?,
+            List(list_command) => list_command.run(&app.args)?,
         }
     }
     Ok(())
