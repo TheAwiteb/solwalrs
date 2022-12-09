@@ -151,11 +151,13 @@ impl EncryptedWallet {
     #[must_use = "decrypting the wallet will return the decrypted wallet"]
     pub fn decrypt(self, password: &str) -> SolwalrsResult<Wallet> {
         let password = password.as_bytes();
-        let keypairs = self
+        let mut keypairs = self
             .keypairs
             .into_iter()
             .map(|keypair| keypair.decrypt(password))
             .collect::<SolwalrsResult<Vec<_>>>()?;
+        // Sort the keypairs by name
+        keypairs.sort_by(|a, b| a.name.cmp(&b.name));
 
         Ok(Wallet { keypairs })
     }
