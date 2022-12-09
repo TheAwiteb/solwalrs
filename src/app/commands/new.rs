@@ -30,6 +30,11 @@ use crate::wallet::Wallet;
 pub struct NewCommand {
     /// The name of the keypair
     pub name: String,
+    /// To male the keypair the default keypair
+    ///
+    /// Note: if you have a default keypair, it will be replaced by the new keypair
+    #[clap(short, long)]
+    pub default: bool,
 }
 
 impl NewCommand {
@@ -41,15 +46,20 @@ impl NewCommand {
         let new_keypair = KeyPair::new(&self.name);
         let str_public_key = new_keypair.public_key.as_bytes().to_base58();
         let private_key = new_keypair.private_key.clone();
-        wallet.add_keypair(new_keypair)?;
+        wallet.add_keypair(new_keypair, self.default)?;
         let app_file = app_file_path(args)?;
         println!(
             "New keypair created successfully in `{}`",
             app_file.display()
         );
         print_table(
-            vec!["Name", "Public Key (Address)", "Private Key"],
-            vec![vec![&self.name, &str_public_key, &private_key]],
+            vec!["Name", "Public Key (Address)", "Private Key", "Is default"],
+            vec![vec![
+                &self.name,
+                &str_public_key,
+                &private_key,
+                &self.default.to_string(),
+            ]],
         );
         wallet.export(&password, args)
     }

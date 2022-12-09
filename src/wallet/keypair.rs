@@ -33,6 +33,8 @@ pub struct KeyPair {
     pub secret_key: SecretKey,
     /// The private key of the keypair (public and secret keys), base58 encoded
     pub private_key: String,
+    /// Is this keypair the default keypair
+    pub is_default: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -42,6 +44,25 @@ pub struct EncryptedKeyPair {
     name: String,
     /// The encrypted private key of the keypair (public and secret keys) , base54 encoded
     private_key: String,
+    /// Is this keypair the default keypair, (unencrypted)
+    #[serde(default)] // Default value is false
+    is_default: bool,
+}
+
+impl Clone for KeyPair {
+    fn clone(&self) -> Self {
+        // We can't clone the secret key, so we need to create a new one from the bytes
+        // This is safe, because we know that the secret key is valid
+        // Yahh, is workaround, but it's the only way to clone the secret key (is works anyway) :D I just joking
+        Self {
+            name: self.name.clone(),
+            // Copy is implemented for PublicKey
+            public_key: self.public_key,
+            secret_key: SecretKey::from_bytes(&self.secret_key.to_bytes()).unwrap(),
+            private_key: self.private_key.clone(),
+            is_default: self.is_default,
+        }
+    }
 }
 
 impl KeyPair {
@@ -55,13 +76,18 @@ impl KeyPair {
             public_key: keypair.public,
             secret_key: keypair.secret,
             private_key,
+            is_default: false,
         }
     }
 
     /// Import a keypair from a private key, with given name
     /// Note: the private key must be 64 bytes long, will return `Error::InvalidPrivateKey` if the private key is not 64 bytes long.
     /// Note: the private key must be in base58 format, will return `Error::InvalidPrivateKey` if the private key is not in base58 format.
-    pub fn from_private_key(name: impl Into<String>, private_key: String) -> SolwalrsResult<Self> {
+    pub fn from_private_key(
+        name: impl Into<String>,
+        private_key: String,
+        is_default: bool,
+    ) -> SolwalrsResult<Self> {
         let name = name.into();
         let private_key = private_key
             .from_base58()
@@ -73,6 +99,7 @@ impl KeyPair {
             public_key: keypair.public,
             secret_key: keypair.secret,
             private_key: private_key.to_base58(),
+            is_default,
         })
     }
 
@@ -83,7 +110,11 @@ impl KeyPair {
         // encrypt it as base58
         let name = utils::encrypt(password, self.name.as_bytes().to_base58().as_bytes())?;
         let private_key = utils::encrypt(password, self.private_key.as_bytes())?;
-        Ok(EncryptedKeyPair { name, private_key })
+        Ok(EncryptedKeyPair {
+            name,
+            private_key,
+            is_default: self.is_default,
+        })
     }
 }
 
@@ -103,6 +134,6 @@ impl EncryptedKeyPair {
         .map_err(|_| SolwalrsError::Keypair("Failed to decrypt the keypair name".to_string()))?;
         let private_key = utils::decrypt(password, &self.private_key)?;
 
-        KeyPair::from_private_key(name, private_key)
+        KeyPair::from_private_key(name, private_key, self.is_default)
     }
 }

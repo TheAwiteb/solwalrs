@@ -86,11 +86,21 @@ impl Wallet {
 
     /// Add a keypair to the wallet, if the keypair name already exists, it will return `Error::DuplicateKeyPairName`
     /// Note: this function will not add the keypair to the wallet file, you need to call `Wallet::export` to do that
-    pub fn add_keypair(&mut self, keypair: keypair::KeyPair) -> SolwalrsResult<()> {
-        if self.get_keypair(&keypair.name).is_err() {
-            self.keypairs.push(keypair);
+    pub fn add_keypair(
+        &mut self,
+        mut new_keypair: keypair::KeyPair,
+        is_default: bool,
+    ) -> SolwalrsResult<()> {
+        if self.get_keypair(&new_keypair.name).is_err() {
+            if is_default {
+                self.keypairs
+                    .iter_mut()
+                    .for_each(|kp| kp.is_default = false);
+                new_keypair.is_default = true;
+            }
+            self.keypairs.push(new_keypair);
         } else {
-            return Err(SolwalrsError::DuplicateKeyPairName(keypair.name));
+            return Err(SolwalrsError::DuplicateKeyPairName(new_keypair.name));
         }
 
         Ok(())
@@ -113,6 +123,14 @@ impl Wallet {
             .position(|keypair| keypair.name == name)
             .ok_or_else(|| SolwalrsError::KeyPairNotFound(name.to_string()))?;
         Ok(self.keypairs.remove(index))
+    }
+
+    /// Returns the default keypair, if there is no default keypair, it will return `Error::NoDefaultKeyPair`
+    pub fn default_keypair(&self) -> SolwalrsResult<&keypair::KeyPair> {
+        self.keypairs
+            .iter()
+            .find(|keypair| keypair.is_default)
+            .ok_or(SolwalrsError::NoDefaultKeyPair)
     }
 }
 

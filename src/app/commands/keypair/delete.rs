@@ -22,8 +22,8 @@ use crate::wallet::{print_table, Wallet};
 
 #[derive(Parser, Debug)]
 pub struct DeleteCommand {
-    /// The name of the keypair
-    pub name: String,
+    /// The name of the keypair, will use the default keypair if not provided
+    pub name: Option<String>,
 }
 
 impl DeleteCommand {
@@ -31,12 +31,17 @@ impl DeleteCommand {
     /// Note: this function will not delete the keypair from the wallet file, you need to call `Wallet::export` to do that
     #[must_use = "deleting a keypair will return the deleted keypair as a table"]
     pub fn run(&self, wallet: &mut Wallet) -> SolwalrsResult<()> {
-        let deleted_keypair = wallet.delete_keypair(&self.name)?;
+        let name = self
+            .name
+            .clone()
+            .map(Ok)
+            .unwrap_or_else(|| Ok(wallet.default_keypair()?.name.clone()))?;
+        let deleted_keypair = wallet.delete_keypair(&name)?;
         println!("Done deleting successfully!");
         print_table(
             vec!["Name", "Public Key (Address)"],
             vec![vec![
-                &self.name,
+                &name,
                 &deleted_keypair.public_key.as_bytes().to_base58(),
             ]],
         );

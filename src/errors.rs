@@ -41,6 +41,9 @@ pub enum Error {
     /// Invalid private key
     #[error("The private key of `{0}` is invalid")]
     InvalidPrivateKey(String),
+    /// No default keypair
+    #[error("No default keypair is set, please set a default keypair using `solwalrs keypair set-default <keypair-name>`, or enter the keypair name after the command")]
+    NoDefaultKeyPair,
     /// Other errors
     #[error("{0}")]
     Other(String),
