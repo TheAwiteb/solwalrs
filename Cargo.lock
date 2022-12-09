@@ -576,7 +576,7 @@ checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 
 [[package]]
 name = "solwalrs"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "base58",
  "base64",

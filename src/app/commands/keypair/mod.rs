@@ -14,50 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+mod default;
 mod delete;
-mod list;
-mod new;
 
-pub use delete::*;
-pub use list::*;
-pub use new::*;
+pub use default::DefaultCommand;
+pub use delete::DeleteCommand;
 
 use crate::{errors::Result as SolwalrsResult, utils, wallet::Wallet};
 
 use clap::Subcommand;
 
-use super::AppArgs;
+use crate::app::AppArgs;
 
-/// Commands for managing keypairs
+/// Commands for managing a keypair
 #[derive(Subcommand, Debug)]
-pub enum KaypairCommand {
-    /// Generate a new keypair
-    #[clap(visible_alias = "n")]
-    New(NewCommand),
-    /// List all keypairs
-    #[clap(visible_alias = "ls")]
-    List(ListCommand),
-    /// Delete a keypair
+pub enum KeypairCommand {
     #[clap(visible_alias = "D")]
     Delete(DeleteCommand),
+    SetDefault(DefaultCommand),
 }
 
-impl KaypairCommand {
+impl KeypairCommand {
     /// Run the command
     pub fn run(self, args: &AppArgs) -> SolwalrsResult<()> {
-        use KaypairCommand::*;
+        use KeypairCommand::*;
 
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;
         match self {
-            New(command) => {
-                command.run(&mut wallet, args)?;
+            Delete(command) => {
+                command.run(&mut wallet)?;
                 wallet.export(&password, args)?;
             }
-            List(command) => {
-                command.run(wallet)?;
-            }
-            Delete(command) => {
+            SetDefault(command) => {
                 command.run(&mut wallet)?;
                 wallet.export(&password, args)?;
             }
