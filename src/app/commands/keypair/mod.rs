@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+mod default;
 mod delete;
 
+pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
 
 use crate::{errors::Result as SolwalrsResult, utils, wallet::Wallet};
@@ -27,9 +29,9 @@ use crate::app::AppArgs;
 /// Commands for managing a keypair
 #[derive(Subcommand, Debug)]
 pub enum KeypairCommand {
-    /// Delete a keypair
     #[clap(visible_alias = "D")]
     Delete(DeleteCommand),
+    SetDefault(DefaultCommand),
 }
 
 impl KeypairCommand {
@@ -41,6 +43,10 @@ impl KeypairCommand {
         let mut wallet = Wallet::load(&password, args)?;
         match self {
             Delete(command) => {
+                command.run(&mut wallet)?;
+                wallet.export(&password, args)?;
+            }
+            SetDefault(command) => {
                 command.run(&mut wallet)?;
                 wallet.export(&password, args)?;
             }
