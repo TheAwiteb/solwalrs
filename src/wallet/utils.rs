@@ -55,7 +55,7 @@ pub fn app_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
         }
     } else {
         let app_data_dir = app_data_dir()?;
-        Ok(app_data_dir.join("solawalrs.json"))
+        Ok(app_data_dir.join("solwalrs.json"))
     }
 }
 
