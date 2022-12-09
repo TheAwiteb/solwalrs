@@ -18,6 +18,7 @@ impl DefaultCommand {
         let keypair = wallet.get_keypair(&self.name)?.clone();
         wallet.delete_keypair(&self.name)?;
         wallet.add_keypair(keypair, true)?;
+        println!("Done setting `{}` as a default!", self.name);
         Ok(())
     }
 }
