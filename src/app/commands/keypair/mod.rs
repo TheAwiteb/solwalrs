@@ -26,11 +26,11 @@ use crate::{errors::Result as SolwalrsResult, utils, wallet::Wallet};
 
 use clap::Subcommand;
 
-use super::AppArgs;
+use crate::app::AppArgs;
 
-/// Commands for managing keypairs
+/// Commands for managing a keypair
 #[derive(Subcommand, Debug)]
-pub enum KaypairCommand {
+pub enum KeypairCommand {
     /// Generate a new keypair
     #[clap(visible_alias = "n")]
     New(NewCommand),
@@ -42,10 +42,10 @@ pub enum KaypairCommand {
     Delete(DeleteCommand),
 }
 
-impl KaypairCommand {
+impl KeypairCommand {
     /// Run the command
     pub fn run(self, args: &AppArgs) -> SolwalrsResult<()> {
-        use KaypairCommand::*;
+        use KeypairCommand::*;
 
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;

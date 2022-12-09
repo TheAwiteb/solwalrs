@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-mod kaypair;
+mod commands;
 
 use clap::Parser;
-pub use kaypair::*;
+pub use commands::*;
 
 const COPYRIGHT: &str = "Solwalrs  Copyright (C) 2022  Solwalrs contributors <https://github.com/TheAwiteb/solwalrs/graphs/contributors>
 This program comes with ABSOLUTELY NO WARRANTY; for details see <https://www.gnu.org/licenses/gpl-3.0.html>.
@@ -36,7 +36,7 @@ pub struct AppArgs {
 #[derive(Parser, Debug)]
 pub enum Commands {
     #[clap(subcommand, visible_alias = "kp")]
-    Keypair(KaypairCommand),
+    Keypair(keypair::KeypairCommand),
 }
 
 #[derive(Parser, Debug)]

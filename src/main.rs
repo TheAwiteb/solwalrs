@@ -30,7 +30,7 @@ fn try_main() -> SolwalrsResult<()> {
     if let Some(command) = app.command {
         use app::Commands::*;
         match command {
-            Keypair(kaypair_command) => kaypair_command.run(&app.args)?,
+            Keypair(keypair_command) => keypair_command.run(&app.args)?,
         }
     }
     Ok(())
