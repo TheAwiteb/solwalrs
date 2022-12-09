@@ -44,7 +44,15 @@ pub struct ListCommand {
 /// Create a row for the table
 fn create_row(keypair: &KeyPair, list_command: &ListCommand) -> Vec<String> {
     let mut row = vec![
-        keypair.name.clone(),
+        format!(
+            "{}{}",
+            keypair.name,
+            if keypair.is_default {
+                " (default ⭐)"
+            } else {
+                ""
+            }
+        ),
         keypair.public_key.as_bytes().to_base58(),
     ];
     if list_command.secret {
