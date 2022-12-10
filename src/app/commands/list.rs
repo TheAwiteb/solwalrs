@@ -47,11 +47,7 @@ fn create_row(keypair: &KeyPair, list_command: &ListCommand) -> Vec<String> {
         format!(
             "{}{}",
             keypair.name,
-            if keypair.is_default {
-                " (default ⭐)"
-            } else {
-                ""
-            }
+            if keypair.is_default { " (default)" } else { "" }
         ),
         keypair.public_key.as_bytes().to_base58(),
     ];
