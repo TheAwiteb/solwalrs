@@ -20,7 +20,7 @@ use clap::Parser;
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
 use crate::utils;
-use crate::wallet::{print_table, KeyPair, Wallet};
+use crate::wallet::{print_table, short_public_key, KeyPair, Wallet};
 
 /// List all keypairs
 #[derive(Parser, Debug)]
@@ -31,11 +31,14 @@ pub struct ListCommand {
     #[clap(short, long)]
     pub limit: Option<usize>,
     /// Print the private key of the keypair, (default: false)
-    #[clap(short, long, default_value = "false")]
+    #[clap(long, default_value = "false")]
     pub private: bool,
     /// Print the secret key of the keypair, (default: false)
-    #[clap(short, long, default_value = "false")]
+    #[clap(long, default_value = "false")]
     pub secret: bool,
+    /// Print the short public key of the keypair, (default: false)
+    #[clap(short, long, default_value = "false")]
+    pub short: bool,
     /// The name of the keypair, (default: list all keypairs)
     #[clap(short, long)]
     pub name: Option<String>,
@@ -50,7 +53,11 @@ fn create_row(keypair: &KeyPair, list_command: &ListCommand, args: &AppArgs) -> 
             keypair.name,
             if keypair.is_default { " (default)" } else { "" }
         ),
-        keypair.public_key.as_bytes().to_base58(),
+        if list_command.short {
+            short_public_key(&keypair.public_key)
+        } else {
+            keypair.public_key.as_bytes().to_base58()
+        },
     ];
     if list_command.secret {
         row.push(keypair.secret_key.as_bytes().to_base58());
