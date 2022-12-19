@@ -25,8 +25,6 @@ use crate::{
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
 };
 
-// Fixme: implement a custom `Debug` trait for `KeyPair` and `EncryptedKeyPair, to hide the secret/private key
-#[derive(Debug)]
 /// A keypair with clean data (decrypted)
 pub struct KeyPair {
     /// The name of the keypair
@@ -41,7 +39,7 @@ pub struct KeyPair {
     pub is_default: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 /// A keypair with encrypted data
 pub struct EncryptedKeyPair {
     /// The encrypted name of the keypair, base54 encoded
@@ -66,6 +64,31 @@ impl Clone for KeyPair {
             private_key: self.private_key.clone(),
             is_default: self.is_default,
         }
+    }
+}
+
+impl std::fmt::Debug for KeyPair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let pk = self.public_key.to_bytes().to_base58();
+        f.debug_struct("KeyPair")
+            .field("name", &self.name)
+            .field(
+                "public_key",
+                &format!("{}...{}", &pk[..4], &pk[pk.len() - 4..]),
+            )
+            .field("private_key", &"***")
+            .field("is_default", &self.is_default)
+            .finish()
+    }
+}
+
+impl std::fmt::Debug for EncryptedKeyPair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EncryptedKeyPair")
+            .field("name", &self.name)
+            .field("private_key", &"***")
+            .field("is_default", &self.is_default)
+            .finish()
     }
 }
 
