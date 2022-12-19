@@ -19,7 +19,7 @@ use ed25519_dalek::{PublicKey, SecretKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
-use super::utils;
+use super::{short_public_key, utils};
 use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
@@ -69,13 +69,9 @@ impl Clone for KeyPair {
 
 impl std::fmt::Debug for KeyPair {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let pk = self.public_key.to_bytes().to_base58();
         f.debug_struct("KeyPair")
             .field("name", &self.name)
-            .field(
-                "public_key",
-                &format!("{}...{}", &pk[..4], &pk[pk.len() - 4..]),
-            )
+            .field("public_key", &short_public_key(&self.public_key))
             .field("private_key", &"***")
             .field("is_default", &self.is_default)
             .finish()
@@ -127,7 +123,7 @@ impl KeyPair {
         crate::info!(
             args,
             "Keypair `{name}` imported successfully from encoded keypair, public key is {}",
-            keypair.public.to_bytes().to_base58()
+            short_public_key(&keypair.public)
         );
         Ok(Self {
             name,
@@ -147,7 +143,7 @@ impl KeyPair {
             args,
             "Trying to encrypt the keypair `{}` is public key is {}",
             self.name,
-            self.public_key.to_bytes().to_base58()
+            short_public_key(&self.public_key)
         );
 
         let name = utils::encrypt(password, self.name.as_bytes().to_base58().as_bytes())?;
