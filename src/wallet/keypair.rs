@@ -19,10 +19,12 @@ use ed25519_dalek::{PublicKey, SecretKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
-use super::utils;
-use crate::errors::{Error as SolwalrsError, Result as SolwalrsResult};
+use super::{short_public_key, utils};
+use crate::{
+    app::AppArgs,
+    errors::{Error as SolwalrsError, Result as SolwalrsResult},
+};
 
-#[derive(Debug)]
 /// A keypair with clean data (decrypted)
 pub struct KeyPair {
     /// The name of the keypair
@@ -37,7 +39,7 @@ pub struct KeyPair {
     pub is_default: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 /// A keypair with encrypted data
 pub struct EncryptedKeyPair {
     /// The encrypted name of the keypair, base54 encoded
@@ -65,6 +67,27 @@ impl Clone for KeyPair {
     }
 }
 
+impl std::fmt::Debug for KeyPair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("KeyPair")
+            .field("name", &self.name)
+            .field("public_key", &short_public_key(&self.public_key))
+            .field("private_key", &"***")
+            .field("is_default", &self.is_default)
+            .finish()
+    }
+}
+
+impl std::fmt::Debug for EncryptedKeyPair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EncryptedKeyPair")
+            .field("name", &self.name)
+            .field("private_key", &"***")
+            .field("is_default", &self.is_default)
+            .finish()
+    }
+}
+
 impl KeyPair {
     /// Create a new keypair, with given name
     pub fn new(name: impl Into<String>) -> Self {
@@ -87,13 +110,21 @@ impl KeyPair {
         name: impl Into<String>,
         private_key: String,
         is_default: bool,
+        args: &AppArgs,
     ) -> SolwalrsResult<Self> {
         let name = name.into();
+        crate::info!(args, "Trying to import the keypair from encoded keypair");
+
         let private_key = private_key
             .from_base58()
             .map_err(|_| SolwalrsError::InvalidPrivateKey(name.clone()))?;
         let keypair = ed25519_dalek::Keypair::from_bytes(private_key.as_slice())
             .map_err(|_| SolwalrsError::InvalidPrivateKey(name.clone()))?;
+        crate::info!(
+            args,
+            "Keypair `{name}` imported successfully from encoded keypair, public key is {}",
+            short_public_key(&keypair.public)
+        );
         Ok(Self {
             name,
             public_key: keypair.public,
@@ -106,10 +137,18 @@ impl KeyPair {
     /// Encrypt the keypair with the given password, will return the encrypted keypair.
     /// The password must be 32 bytes long. will return `None` if the password is not 32 bytes long.
     #[must_use = "encrypting the keypair will return the encrypted keypair"]
-    pub fn encrypt(self, password: &[u8]) -> SolwalrsResult<EncryptedKeyPair> {
-        // encrypt it as base58
+    pub fn encrypt(self, password: &[u8], args: &AppArgs) -> SolwalrsResult<EncryptedKeyPair> {
+        // encrypt it as base58`
+        crate::info!(
+            args,
+            "Trying to encrypt the keypair `{}` is public key is {}",
+            self.name,
+            short_public_key(&self.public_key)
+        );
+
         let name = utils::encrypt(password, self.name.as_bytes().to_base58().as_bytes())?;
         let private_key = utils::encrypt(password, self.private_key.as_bytes())?;
+        crate::info!(args, "Keypair `{}` encrypted successfully", self.name);
         Ok(EncryptedKeyPair {
             name,
             private_key,
@@ -123,7 +162,8 @@ impl EncryptedKeyPair {
     /// The password must be 32 bytes long. will return `Error::InvalidPassword` if the password is not 32 bytes long.
     /// Will return `Error::InvalidPassword` if the password is not correct.
     #[must_use = "decrypting the keypair will return the decrypted keypair"]
-    pub fn decrypt(self, password: &[u8]) -> SolwalrsResult<KeyPair> {
+    pub fn decrypt(self, password: &[u8], args: &AppArgs) -> SolwalrsResult<KeyPair> {
+        crate::info!(args, "Trying to decrypt a keypair");
         let name = String::from_utf8(
             utils::decrypt(password, &self.name)?
                 .from_base58()
@@ -133,7 +173,8 @@ impl EncryptedKeyPair {
         )
         .map_err(|_| SolwalrsError::Keypair("Failed to decrypt the keypair name".to_string()))?;
         let private_key = utils::decrypt(password, &self.private_key)?;
+        crate::info!(args, "Keypair `{}` decrypted successfully", name);
 
-        KeyPair::from_private_key(name, private_key, self.is_default)
+        KeyPair::from_private_key(name, private_key, self.is_default, args)
     }
 }

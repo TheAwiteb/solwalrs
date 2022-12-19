@@ -23,6 +23,8 @@ use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
 };
+use base58::ToBase58;
+use ed25519_dalek::PublicKey;
 use fernet::Fernet;
 
 /// Returns `ProjectDirs` containing all the project directories
@@ -84,6 +86,14 @@ pub fn decrypt(password: &[u8], ciphertext: &str) -> SolwalrsResult<String> {
         .decrypt(ciphertext)
         .map(|x| String::from_utf8_lossy(&x).to_string())
         .map_err(|_| SolwalrsError::InvalidPassword("The password is not correct".to_owned()))
+}
+
+/// Shorten the given public key, by replacing the middle with `...`. take the first 4 and last 4 characters.
+/// returned string will be base58 of the public key.
+pub fn short_public_key(public_key: &PublicKey) -> String {
+    let mut public_key = public_key.to_bytes().to_base58();
+    public_key.replace_range(4..public_key.len() - 4, "...");
+    public_key
 }
 
 /// Create a rows for the tables

@@ -36,18 +36,19 @@ pub enum KeypairCommand {
 
 impl KeypairCommand {
     /// Run the command
-    pub fn run(self, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
         use KeypairCommand::*;
 
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;
+        crate::info!(args, "The keypair command is: {self:?}");
         match self {
             Delete(command) => {
-                command.run(&mut wallet)?;
+                command.run(&mut wallet, args)?;
                 wallet.export(&password, args)?;
             }
             SetDefault(command) => {
-                command.run(&mut wallet)?;
+                command.run(&mut wallet, args)?;
                 wallet.export(&password, args)?;
             }
         };
