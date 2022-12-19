@@ -16,19 +16,24 @@
 
 mod app;
 mod errors;
+#[macro_use]
+mod log;
 mod utils;
 mod wallet;
 
+use clap::Parser;
 use std::process::ExitCode as StdExitCode;
 
 use crate::app::App;
-use clap::Parser;
 use errors::Result as SolwalrsResult;
 
-fn try_main() -> SolwalrsResult<()> {
-    let app = App::parse();
-    if let Some(command) = app.command {
-        use app::Commands::*;
+fn try_main(app: &App) -> SolwalrsResult<()> {
+    use app::Commands::*;
+
+    info!(&app.args, "Solwalrs v{}", env!("CARGO_PKG_VERSION"));
+    info!(&app.args, "The app args is: {:?}", app.args);
+    if let Some(command) = &app.command {
+        info!(&app.args, "The command is {command:?}");
         match command {
             Keypair(keypair_command) => keypair_command.run(&app.args)?,
             New(new_command) => new_command.run(&app.args)?,
@@ -39,8 +44,10 @@ fn try_main() -> SolwalrsResult<()> {
 }
 
 fn main() -> StdExitCode {
-    if let Err(error) = try_main() {
-        eprintln!("Solwalrs: {}", error);
+    let app = App::parse();
+    if let Err(error) = try_main(&app) {
+        error!(&app.args, "There is an error: {error:?}");
+        eprintln!("Solwalrs: {error}");
         return error.exit_code();
     }
     StdExitCode::SUCCESS

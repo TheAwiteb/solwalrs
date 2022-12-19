@@ -46,7 +46,7 @@ impl NewCommand {
         let new_keypair = KeyPair::new(&self.name);
         let str_public_key = new_keypair.public_key.as_bytes().to_base58();
         let private_key = new_keypair.private_key.clone();
-        wallet.add_keypair(new_keypair, self.default)?;
+        wallet.add_keypair(new_keypair, self.default, args)?;
         let app_file = app_file_path(args)?;
         println!(
             "New keypair created successfully in `{}`",

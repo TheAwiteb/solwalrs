@@ -31,6 +31,9 @@ pub struct AppArgs {
     /// don't recommend to change this, default is `apps_data_directory/solwalrs.json`
     #[clap(long)]
     pub app_file: Option<String>,
+    /// Verbose mode, for debugging
+    #[clap(short, long)]
+    pub verbose: bool,
 }
 
 #[derive(Parser, Debug)]
