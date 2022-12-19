@@ -20,7 +20,7 @@ use clap::Parser;
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
 use crate::utils;
-use crate::wallet::{print_table, KeyPair, Wallet};
+use crate::wallet::{print_table, short_public_key, KeyPair, Wallet};
 
 /// List all keypairs
 #[derive(Parser, Debug)]
@@ -31,29 +31,33 @@ pub struct ListCommand {
     #[clap(short, long)]
     pub limit: Option<usize>,
     /// Print the private key of the keypair, (default: false)
-    #[clap(short, long, default_value = "false")]
+    #[clap(long, default_value = "false")]
     pub private: bool,
     /// Print the secret key of the keypair, (default: false)
-    #[clap(short, long, default_value = "false")]
+    #[clap(long, default_value = "false")]
     pub secret: bool,
+    /// Print the short public key of the keypair, (default: false)
+    #[clap(short, long, default_value = "false")]
+    pub short: bool,
     /// The name of the keypair, (default: list all keypairs)
     #[clap(short, long)]
     pub name: Option<String>,
 }
 
 /// Create a row for the table
-fn create_row(keypair: &KeyPair, list_command: &ListCommand) -> Vec<String> {
+fn create_row(keypair: &KeyPair, list_command: &ListCommand, args: &AppArgs) -> Vec<String> {
+    crate::info!(args, "Creating a row for `{keypair:?}`");
     let mut row = vec![
         format!(
             "{}{}",
             keypair.name,
-            if keypair.is_default {
-                " (default ⭐)"
-            } else {
-                ""
-            }
+            if keypair.is_default { " (default)" } else { "" }
         ),
-        keypair.public_key.as_bytes().to_base58(),
+        if list_command.short {
+            short_public_key(&keypair.public_key)
+        } else {
+            keypair.public_key.as_bytes().to_base58()
+        },
     ];
     if list_command.secret {
         row.push(keypair.secret_key.as_bytes().to_base58());
@@ -65,14 +69,19 @@ fn create_row(keypair: &KeyPair, list_command: &ListCommand) -> Vec<String> {
 }
 
 /// List all keypairs
-fn list_all_keypairs(list_command: &ListCommand, wallet: &Wallet, header: Vec<&str>) {
+fn list_all_keypairs(
+    list_command: &ListCommand,
+    wallet: &Wallet,
+    header: Vec<&str>,
+    args: &AppArgs,
+) {
     let keypairs_len = wallet.keypairs.len();
     let limit = list_command.limit.unwrap_or(keypairs_len);
     let rows: Vec<_> = wallet
         .keypairs
         .iter()
         .take(limit)
-        .map(|kp| create_row(kp, list_command))
+        .map(|kp| create_row(kp, list_command, args))
         .collect();
     print_table(
         header,
@@ -88,11 +97,12 @@ fn list_keypair_by_name(
     wallet: &Wallet,
     name: &str,
     header: Vec<&str>,
+    args: &AppArgs,
 ) -> SolwalrsResult<()> {
-    let keypair = wallet.get_keypair(name)?;
+    let keypair = wallet.get_keypair(name, args)?;
     print_table(
         header,
-        vec![create_row(keypair, list_command)
+        vec![create_row(keypair, list_command, args)
             .iter()
             .map(|s| s.as_str())
             .collect()],
@@ -117,10 +127,10 @@ impl ListCommand {
             }
             if let Some(name) = &self.name {
                 // If the name is set, we will only list the keypair with the name
-                list_keypair_by_name(self, &wallet, name, header)?;
+                list_keypair_by_name(self, &wallet, name, header, args)?;
             } else {
                 // If the name is not set, we will list all keypairs
-                list_all_keypairs(self, &wallet, header)
+                list_all_keypairs(self, &wallet, header, args)
             };
         } else {
             println!("No keypairs found")

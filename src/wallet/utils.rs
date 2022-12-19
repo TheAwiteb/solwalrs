@@ -23,6 +23,8 @@ use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
 };
+use base58::ToBase58;
+use ed25519_dalek::PublicKey;
 use fernet::Fernet;
 
 /// Returns `ProjectDirs` containing all the project directories
@@ -86,28 +88,38 @@ pub fn decrypt(password: &[u8], ciphertext: &str) -> SolwalrsResult<String> {
         .map_err(|_| SolwalrsError::InvalidPassword("The password is not correct".to_owned()))
 }
 
-/// Create a table with the given header and rows, table will be vertical
-pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
+/// Shorten the given public key, by replacing the middle with `...`. take the first 4 and last 4 characters.
+/// returned string will be base58 of the public key.
+pub fn short_public_key(public_key: &PublicKey) -> String {
+    let mut public_key = public_key.to_bytes().to_base58();
+    public_key.replace_range(4..public_key.len() - 4, "...");
+    public_key
+}
+
+/// Create a rows for the tables
+fn create_rows(header: Vec<&str>, rows: Vec<Vec<&str>>) -> Vec<Vec<String>> {
     // Check if the number of columns in the header and rows are the same
     if !rows.iter().all(|row| row.len() == header.len()) {
         panic!("The number of columns in the header and rows must be the same");
     }
-    // Add the header to each row, and add column to each row
-    let rows: Vec<Vec<String>> = rows
-        .into_iter()
+    rows.into_iter()
         .map(|row| {
             row.iter()
                 .enumerate()
                 .map(|(idx, column)| format!("{}: {column}", header[idx],))
                 .collect::<Vec<_>>()
         })
-        .collect();
+        .collect()
+}
 
-    // Get the max length of column
+/// Create a table with the given header and rows, table will be vertical
+#[cfg(not(target_os = "Android"))]
+pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
+    let rows = create_rows(header, rows);
     let max_len = rows
         .iter()
         .flat_map(|row| row.iter())
-        .map(|column| column.len())
+        .map(|column| column.chars().count())
         .max()
         .unwrap_or(0);
     // The divider of the table
@@ -119,7 +131,23 @@ pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
             // pritn the column
             print!("| {}", column);
             // print the last character of the column
-            println!("{: <1$}|", "", max_len + 1 - column.len());
+            println!("{: <1$}|", "", max_len - column.chars().count() + 1);
+        }
+    }
+    println!("{}", divider);
+}
+
+/// Create a table with the given header and rows, table will be vertical
+#[cfg(target_os = "Android")]
+pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
+    let rows = create_rows(header, rows);
+    // The divider of the table
+    let divider = format!("+={:-<1$}=+", "", 10);
+    // Print the table
+    for row in rows {
+        println!("{}", divider);
+        for column in row {
+            println!("- {}", column)
         }
     }
     println!("{}", divider);

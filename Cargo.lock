@@ -372,6 +372,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
+name = "prettylog"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0656814e454f19b418ea0d10e23122b3e1118edfcdc17e4366cb7efbbfa8e7fe"
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -576,7 +582,7 @@ checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 
 [[package]]
 name = "solwalrs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "base58",
  "base64",
@@ -584,6 +590,7 @@ dependencies = [
  "directories",
  "ed25519-dalek",
  "fernet",
+ "prettylog",
  "rand",
  "rpassword",
  "serde",

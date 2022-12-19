@@ -17,6 +17,7 @@
 use base58::ToBase58;
 use clap::Parser;
 
+use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
 use crate::wallet::{print_table, Wallet};
 
@@ -31,19 +32,21 @@ impl DeleteCommand {
     /// Delete a keypair, and return the table of deleted keypair
     /// Note: this function will not delete the keypair from the wallet file, you need to call `Wallet::export` to do that
     #[must_use = "deleting a keypair will return the deleted keypair as a table"]
-    pub fn run(&self, wallet: &mut Wallet) -> SolwalrsResult<()> {
+    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+        // TODO: seprate the name logic in a function
         let name = self
             .name
             .clone()
             .map(Ok)
-            .unwrap_or_else(|| Ok(wallet.default_keypair()?.name.clone()))?;
-        let deleted_keypair = wallet.delete_keypair(&name)?;
+            .unwrap_or_else(|| Ok(wallet.default_keypair(args)?.name.clone()))?;
+        crate::info!(args, "Trying to delete `{name}` from {wallet:?}");
+        let deleted_keypair = wallet.delete_keypair(&name, args);
         println!("Done deleting successfully!");
         print_table(
             vec!["Name", "Public Key (Address)"],
             vec![vec![
                 &name,
-                &deleted_keypair.public_key.as_bytes().to_base58(),
+                &deleted_keypair?.public_key.as_bytes().to_base58(),
             ]],
         );
         Ok(())

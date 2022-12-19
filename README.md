@@ -50,12 +50,14 @@ After building, the binary will be located at `target/release/solwalrs`, you can
 
 ## Usage
 ```bash
-A simple CLI Solana wallet, supporting multiple keypairs
+A simple and easy to use CLI Solana wallet
 
 Usage: solwalrs [OPTIONS] [COMMAND]
 
 Commands:
-  keypair  Commands for managing keypairs [aliases: kp]
+  keypair  Commands for managing a keypair [aliases: kp]
+  new      Generate a new keypair [aliases: n]
+  list     List all keypairs [aliases: ls]
   help     Print this message or the help of the given subcommand(s)
 
 Options:
@@ -88,6 +90,10 @@ If you discover a security vulnerability within this project, please send me an 
 | Create a new keypair | View your keypairs |
 |:---:|:---:|
 | ![Create a new keypair](https://i.suar.me/A8YlV/l) | ![View your keypairs](https://i.suar.me/yMm47/l)
+
+## Tested on
+- Pop!_OS 21.04
+- Android Termux (arm64)
 
 ## License
 <div align="center">
