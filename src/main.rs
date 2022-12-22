@@ -34,10 +34,12 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
     info!(&app.args, "The app args is: {:?}", app.args);
     if let Some(command) = &app.command {
         info!(&app.args, "The command is {command:?}");
+        // TODO: Create the wallet here, and pass it to the commands
         match command {
             Keypair(keypair_command) => keypair_command.run(&app.args)?,
             New(new_command) => new_command.run(&app.args)?,
             List(list_command) => list_command.run(&app.args)?,
+            Import(import_command) => import_command.run(&app.args)?,
         }
     }
     Ok(())
