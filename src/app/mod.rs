@@ -16,13 +16,42 @@
 
 mod commands;
 
+use clap::builder::{ValueParser, ValueParserFactory};
 use clap::Parser;
 pub use commands::*;
+
+use crate::errors::Result as SolwalrsResult;
+use crate::wallet::Wallet;
 
 const COPYRIGHT: &str = "Solwalrs  Copyright (C) 2022  Solwalrs contributors <https://github.com/TheAwiteb/solwalrs/graphs/contributors>
 This program comes with ABSOLUTELY NO WARRANTY; for details see <https://www.gnu.org/licenses/gpl-3.0.html>.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see <https://www.gnu.org/licenses/gpl-3.0.html> for details.";
+
+/// The name of the keypair to work with.
+/// This struct help to get the keypair name from the command line.
+#[derive(Debug, Clone)]
+pub struct KeypairName {
+    name: Option<String>,
+}
+
+impl KeypairName {
+    /// Get the name of the keypair, if the name is not provided, the default keypair name will be used.
+    pub fn name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String> {
+        self.name
+            .clone()
+            .map(Ok)
+            .unwrap_or_else(|| Ok(wallet.default_keypair(args)?.name.clone()))
+    }
+}
+
+impl ValueParserFactory for KeypairName {
+    type Parser = ValueParser;
+
+    fn value_parser() -> Self::Parser {
+        ValueParser::string()
+    }
+}
 
 #[derive(Parser, Debug)]
 pub struct AppArgs {
