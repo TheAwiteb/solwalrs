@@ -148,21 +148,16 @@ impl KeyPair {
 
     /// Import a keypair from a private key, with given name
     /// Note: the private key must be 64 bytes long, will return `Error::InvalidPrivateKey` if the private key is not 64 bytes long.
-    /// Note: the private key must be in base58 format, will return `Error::InvalidPrivateKey` if the private key is not in base58 format.
     pub fn from_private_key(
         name: impl Into<String>,
-        private_key: String,
+        private_key: Vec<u8>,
         is_default: bool,
         args: &AppArgs,
     ) -> SolwalrsResult<Self> {
         let name = name.into();
         crate::info!(args, "Trying to import the keypair from encoded keypair");
 
-        // FIXME: Should expect the private key as bytes, not base58 encoded string.
-        let private_key = private_key
-            .from_base58()
-            .map_err(|_| SolwalrsError::InvalidPrivateKey(name.clone()))?;
-        let keypair = ed25519_dalek::Keypair::from_bytes(private_key.as_slice())
+        let keypair = ed25519_dalek::Keypair::from_bytes(&private_key)
             .map_err(|_| SolwalrsError::InvalidPrivateKey(name.clone()))?;
         crate::info!(
             args,
@@ -214,7 +209,7 @@ impl KeyPair {
         crate::info!(args, "Trying to import the keypair");
         match import_type {
             ImportType::PrivateKey { bytes } => {
-                Self::from_private_key(name, bytes.to_base58(), is_default, args)
+                Self::from_private_key(name, bytes, is_default, args)
             }
             ImportType::SecretKey { bytes } => Self::from_secret_key(name, bytes, is_default, args),
         }
@@ -258,7 +253,9 @@ impl EncryptedKeyPair {
                 })?,
         )
         .map_err(|_| SolwalrsError::Keypair("Failed to decrypt the keypair name".to_string()))?;
-        let private_key = utils::decrypt(password, &self.private_key)?;
+        let private_key = utils::decrypt(password, &self.private_key)?
+            .from_base58()
+            .map_err(|_| SolwalrsError::Keypair("Failed to decode the private key".to_owned()))?;
         crate::info!(args, "Keypair `{}` decrypted successfully", name);
 
         KeyPair::from_private_key(name, private_key, self.is_default, args)
