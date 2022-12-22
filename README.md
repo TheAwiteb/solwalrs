@@ -58,10 +58,12 @@ Commands:
   keypair  Commands for managing a keypair [aliases: kp]
   new      Generate a new keypair [aliases: n]
   list     List all keypairs [aliases: ls]
+  import   Import new keypair by private key or secret key (input prompt) [aliases: i]
   help     Print this message or the help of the given subcommand(s)
 
 Options:
       --app-file <APP_FILE>  The path to the app file
+  -v, --verbose              Verbose mode, for debugging
   -h, --help                 Print help information (use `--help` for more detail)
   -V, --version              Print version information
 ```
