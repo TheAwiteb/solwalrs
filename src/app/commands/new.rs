@@ -43,10 +43,10 @@ impl NewCommand {
     pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;
-        let new_keypair = KeyPair::new(&self.name);
+        let new_keypair = KeyPair::new(&self.name, self.default);
         let str_public_key = new_keypair.public_key.as_bytes().to_base58();
         let private_key = new_keypair.private_key.clone();
-        wallet.add_keypair(new_keypair, self.default, args)?;
+        wallet.add_keypair(new_keypair, args)?;
         let app_file = app_file_path(args)?;
         println!(
             "New keypair created successfully in `{}`",
