@@ -88,9 +88,52 @@ impl std::fmt::Debug for EncryptedKeyPair {
     }
 }
 
+/// The type of the keypair to import, private key or secret key.
+pub enum ImportType {
+    /// The private key, which is the public and secret key combined. (64 bytes)
+    PrivateKey { bytes: Vec<u8> },
+    /// The secret key, which is the private key without the public key. (32 bytes)
+    SecretKey { bytes: Vec<u8> },
+}
+
+impl ImportType {
+    /// From bytes array
+    pub fn from_bytes(bytes: Vec<u8>) -> SolwalrsResult<Self> {
+        let length = bytes.len();
+        // private key is 64 bytes, secret key is 32 bytes.
+        if length == 64 {
+            Ok(ImportType::PrivateKey { bytes })
+        } else if length == 32 {
+            Ok(ImportType::SecretKey { bytes })
+        } else {
+            Err(SolwalrsError::InvalidBytesLength(length))
+        }
+    }
+    /// Parse the import type from the string.
+    pub fn parse(input: String) -> SolwalrsResult<Self> {
+        if input.starts_with('[') && input.ends_with(']') {
+            // parse a string vector to vec<u8>
+            let bytes = input
+                .trim_start_matches('[')
+                .trim_end_matches(']')
+                .split(',')
+                .map(|s| s.trim().parse::<u8>())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|err| SolwalrsError::Other(format!("Failed to parse bytes: {err}")))?;
+            Self::from_bytes(bytes)
+        } else {
+            // base58 encoded, so need to decode it.
+            let bytes = input
+                .from_base58()
+                .map_err(|err| SolwalrsError::Other(format!("Failed to decode base58: {err:?}")))?;
+            Self::from_bytes(bytes)
+        }
+    }
+}
+
 impl KeyPair {
     /// Create a new keypair, with given name
-    pub fn new(name: impl Into<String>) -> Self {
+    pub fn new(name: impl Into<String>, default: bool) -> Self {
         let mut rng = OsRng::default();
         let keypair = ed25519_dalek::Keypair::generate(&mut rng);
         let private_key = keypair.to_bytes().to_base58();
@@ -99,7 +142,7 @@ impl KeyPair {
             public_key: keypair.public,
             secret_key: keypair.secret,
             private_key,
-            is_default: false,
+            is_default: default,
         }
     }
 
@@ -115,6 +158,7 @@ impl KeyPair {
         let name = name.into();
         crate::info!(args, "Trying to import the keypair from encoded keypair");
 
+        // FIXME: Should expect the private key as bytes, not base58 encoded string.
         let private_key = private_key
             .from_base58()
             .map_err(|_| SolwalrsError::InvalidPrivateKey(name.clone()))?;
@@ -132,6 +176,48 @@ impl KeyPair {
             private_key: private_key.to_base58(),
             is_default,
         })
+    }
+
+    /// Import a keypair from a secret key, secret key is 32 bytes long.
+    pub fn from_secret_key(
+        name: impl Into<String>,
+        bytes: Vec<u8>,
+        is_default: bool,
+        args: &AppArgs,
+    ) -> SolwalrsResult<Self> {
+        crate::info!(args, "Trying to import the keypair from secret key");
+        let name = name.into();
+        let secret_key = SecretKey::from_bytes(bytes.as_slice())
+            .map_err(|err| SolwalrsError::Other(format!("Invaild secret key: {err}")))?;
+        let public_key = PublicKey::from(&secret_key);
+        crate::info!(
+            args,
+            "Keypair `{name}` imported successfully from secret key, public key is {}",
+            short_public_key(&public_key)
+        );
+        Ok(Self {
+            name,
+            public_key,
+            secret_key,
+            private_key: bytes.to_base58(),
+            is_default,
+        })
+    }
+
+    /// Import a keypair
+    pub fn import(
+        name: impl Into<String>,
+        import_type: ImportType,
+        is_default: bool,
+        args: &AppArgs,
+    ) -> SolwalrsResult<Self> {
+        crate::info!(args, "Trying to import the keypair");
+        match import_type {
+            ImportType::PrivateKey { bytes } => {
+                Self::from_private_key(name, bytes.to_base58(), is_default, args)
+            }
+            ImportType::SecretKey { bytes } => Self::from_secret_key(name, bytes, is_default, args),
+        }
     }
 
     /// Encrypt the keypair with the given password, will return the encrypted keypair.

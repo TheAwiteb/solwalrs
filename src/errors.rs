@@ -44,6 +44,10 @@ pub enum Error {
     /// No default keypair
     #[error("No default keypair is set, please set a default keypair using `solwalrs keypair set-default <keypair-name>`, or enter the keypair name after the command")]
     NoDefaultKeyPair,
+    /// Invalid bytes length, not 32 and 64.
+    /// 32 for secret key, 64 for private key
+    #[error("Invalid bytes length: {0}. Secret key is 32 bytes, private key is 64 bytes")]
+    InvalidBytesLength(usize),
     /// Other errors
     #[error("{0}")]
     Other(String),

@@ -44,6 +44,8 @@ pub enum Commands {
     New(NewCommand),
     #[clap(visible_alias = "ls")]
     List(ListCommand),
+    #[clap(visible_alias = "i")]
+    Import(ImportCommand),
 }
 
 #[derive(Parser, Debug)]

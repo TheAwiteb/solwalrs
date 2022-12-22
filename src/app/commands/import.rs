@@ -14,53 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-use base58::ToBase58;
 use clap::Parser;
 
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
 use crate::utils;
-use crate::wallet::app_file_path;
-use crate::wallet::print_table;
-use crate::wallet::KeyPair;
-use crate::wallet::Wallet;
+use crate::wallet::{short_public_key, ImportType, KeyPair, Wallet};
 
-/// Generate a new keypair
+/// Import new keypair by private key or secret key (input prompt).
+///
+/// base58 encoded or bytes array.
 #[derive(Parser, Debug)]
-pub struct NewCommand {
+pub struct ImportCommand {
     /// The name of the keypair
-    pub name: String,
-    /// To make the keypair the default keypair
-    ///
-    /// Note: if you have a default keypair, it will be replaced by the new keypair
+    name: String,
+    /// Whether to make the keypair the default keypair
     #[clap(short, long)]
-    pub default: bool,
+    default: bool,
 }
 
-impl NewCommand {
-    /// Create a new keypair, and retutn the public key
-    #[must_use = "creating a new keypair will return the public key"]
+impl ImportCommand {
+    /// Import new keypair by private key or secret key (input prompt).
+    /// This function will prompt the user to enter the private key or secret key.
     pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+        crate::info!(args, "Importing keypair `{}`", self.name);
         let password = utils::get_password()?;
         let mut wallet = Wallet::load(&password, args)?;
-        let new_keypair = KeyPair::new(&self.name, self.default);
-        let str_public_key = new_keypair.public_key.as_bytes().to_base58();
-        let private_key = new_keypair.private_key.clone();
-        wallet.add_keypair(new_keypair, args)?;
-        let app_file = app_file_path(args)?;
+        let import_type = ImportType::parse(
+            rpassword::prompt_password("Enter the private key or secret key: ").map_err(|err| {
+                crate::errors::Error::Other(format!("Faild to read from stdin: {err}"))
+            })?,
+        )?;
+
+        let keypair = KeyPair::import(&self.name, import_type, self.default, args)?;
+
+        crate::info!(args, "Imported keypair `{keypair:?}`");
         println!(
-            "New keypair created successfully in `{}`",
-            app_file.display()
+            "New keypair `{}` imported successfully. His public key is `{}`",
+            self.name,
+            short_public_key(&keypair.public_key)
         );
-        print_table(
-            vec!["Name", "Public Key (Address)", "Private Key", "Is default"],
-            vec![vec![
-                &self.name,
-                &str_public_key,
-                &private_key,
-                &self.default.to_string(),
-            ]],
-        );
+        wallet.add_keypair(keypair, args)?;
         wallet.export(&password, args)
     }
 }
