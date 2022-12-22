@@ -18,7 +18,6 @@ use clap::Parser;
 
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
-use crate::utils;
 use crate::wallet::{short_public_key, ImportType, KeyPair, Wallet};
 
 /// Import new keypair by private key or secret key (input prompt).
@@ -36,10 +35,8 @@ pub struct ImportCommand {
 impl ImportCommand {
     /// Import new keypair by private key or secret key (input prompt).
     /// This function will prompt the user to enter the private key or secret key.
-    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         crate::info!(args, "Importing keypair `{}`", self.name);
-        let password = utils::get_password()?;
-        let mut wallet = Wallet::load(&password, args)?;
         let import_type = ImportType::parse(
             rpassword::prompt_password("Enter the private key or secret key: ").map_err(|err| {
                 crate::errors::Error::Other(format!("Faild to read from stdin: {err}"))
@@ -55,6 +52,6 @@ impl ImportCommand {
             short_public_key(&keypair.public_key)
         );
         wallet.add_keypair(keypair, args)?;
-        wallet.export(&password, args)
+        Ok(())
     }
 }

@@ -24,7 +24,7 @@ mod wallet;
 use clap::Parser;
 use std::process::ExitCode as StdExitCode;
 
-use crate::app::App;
+use crate::{app::App, wallet::Wallet};
 use errors::Result as SolwalrsResult;
 
 fn try_main(app: &App) -> SolwalrsResult<()> {
@@ -34,13 +34,17 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
     info!(&app.args, "The app args is: {:?}", app.args);
     if let Some(command) = &app.command {
         info!(&app.args, "The command is {command:?}");
-        // TODO: Create the wallet here, and pass it to the commands
+
+        let password = utils::get_password()?;
+        let mut wallet = Wallet::load(&password, &app.args)?;
+
         match command {
-            Keypair(keypair_command) => keypair_command.run(&app.args)?,
-            New(new_command) => new_command.run(&app.args)?,
-            List(list_command) => list_command.run(&app.args)?,
-            Import(import_command) => import_command.run(&app.args)?,
-        }
+            Keypair(keypair_command) => keypair_command.run(&mut wallet, &app.args)?,
+            New(new_command) => new_command.run(&mut wallet, &app.args)?,
+            List(list_command) => list_command.run(&mut wallet, &app.args)?,
+            Import(import_command) => import_command.run(&mut wallet, &app.args)?,
+        };
+        wallet.export(&password, &app.args)?;
     }
     Ok(())
 }

@@ -19,7 +19,6 @@ use clap::Parser;
 
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
-use crate::utils;
 use crate::wallet::{print_table, short_public_key, KeyPair, Wallet};
 
 /// List all keypairs
@@ -113,9 +112,7 @@ fn list_keypair_by_name(
 impl ListCommand {
     /// Run the list command, will return list of keypairs
     #[must_use = "listing keypairs will return list of keypairs"]
-    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
-        let password = utils::get_password()?;
-        let wallet = Wallet::load(&password, args)?;
+    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         let keypairs_len = wallet.keypairs.len();
         if keypairs_len != 0 {
             let mut header = vec!["Name", "Public Key (Address)"];
@@ -127,10 +124,10 @@ impl ListCommand {
             }
             if let Some(name) = &self.name {
                 // If the name is set, we will only list the keypair with the name
-                list_keypair_by_name(self, &wallet, name, header, args)?;
+                list_keypair_by_name(self, wallet, name, header, args)?;
             } else {
                 // If the name is not set, we will list all keypairs
-                list_all_keypairs(self, &wallet, header, args)
+                list_all_keypairs(self, wallet, header, args)
             };
         } else {
             println!("No keypairs found")
