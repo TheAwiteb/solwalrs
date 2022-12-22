@@ -73,6 +73,7 @@ Options:
 - Create a new keypair
 - View your keypairs
 - Delete your keypair
+- Import a keypair from a private key and secret key (base58 encoded or array of bytes)
 
 ## Our goals (roadmap)
 You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)
