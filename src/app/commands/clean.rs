@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-mod clean;
-mod completions;
-mod import;
-pub mod keypair;
-mod list;
-mod new;
-pub use clean::CleanCommand;
-pub use completions::CompletionsCommand;
-pub use import::ImportCommand;
-pub use list::ListCommand;
-pub use new::NewCommand;
+use clap::Parser;
+
+use crate::app::AppArgs;
+use crate::errors::Result as SolwalrsResult;
+use crate::wallet::clean_wallet;
+
+/// Clean the wallet. This will remove all the keypairs from the wallet.
+#[derive(Parser, Debug)]
+pub struct CleanCommand;
+
+impl CleanCommand {
+    /// Run the command
+    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+        clean_wallet(args)?;
+        println!("Wallet cleaned successfully");
+        Ok(())
+    }
+}

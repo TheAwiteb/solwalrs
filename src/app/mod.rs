@@ -69,6 +69,7 @@ pub enum Commands {
     Import(ImportCommand),
     #[clap(visible_alias = "cp")]
     Completions(CompletionsCommand),
+    Clean(CleanCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -84,6 +85,6 @@ impl Commands {
     /// Whether the command needs a wallet
     pub fn needs_wallet(&self) -> bool {
         use Commands::*;
-        !matches!(self, Completions(_))
+        !matches!(self, Completions(_) | Clean(_))
     }
 }

@@ -86,6 +86,7 @@ For commands, you can just press tab to show the commands.
 - Delete your keypair
 - Import a keypair from a private key and secret key (base58 encoded or array of bytes)
 - Qr code generator for your public key, export to image or print to console
+- Clean the app file (remove all keypairs)
 
 ## Our goals (roadmap)
 You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)
