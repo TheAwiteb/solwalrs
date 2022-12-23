@@ -26,3 +26,5 @@ thiserror = "= 1.0.38"
 qrcode = "= 0.12.0"
 image = "= 0.23.14"
 clap_complete = "= 4.0.7"
+solana-client = "= 1.14.11"
+url = { version = "= 2.3.1", features = ["serde"] }

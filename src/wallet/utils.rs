@@ -26,6 +26,7 @@ use crate::{
 use base58::ToBase58;
 use ed25519_dalek::PublicKey;
 use fernet::Fernet;
+use solana_client::rpc_client::RpcClient;
 
 /// Returns `ProjectDirs` containing all the project directories
 pub fn app_data_dir() -> SolwalrsResult<PathBuf> {
@@ -70,6 +71,19 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
         .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
     crate::info!(args, "Wallet file removed successfully");
     Ok(())
+}
+
+/// Returns the RPC client, if the `--rpc` flag is not set, it will use the default RPC client.
+/// The default RPC client is `https://api.mainnet-beta.solana.com`
+#[allow(dead_code)] // Will be used in the future
+pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
+    if let Some(rpc) = &args.rpc {
+        Ok(RpcClient::new(rpc))
+    } else {
+        Ok(RpcClient::new(
+            "https://api.mainnet-beta.solana.com".to_string(),
+        ))
+    }
 }
 
 /// Create a fernet by the given key, using it to encrypt and decrypt.

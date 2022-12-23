@@ -60,11 +60,13 @@ Commands:
   list         List all keypairs [aliases: ls]
   import       Import new keypair by private key or secret key (input prompt) [aliases: i]
   completions  Generate shell completions [aliases: cp]
+  clean        Clean the wallet. This will remove all the keypairs from the wallet
   help         Print this message or the help of the given subcommand(s)
 
 Options:
       --app-file <APP_FILE>  The path to the app file
   -v, --verbose              Verbose mode, for debugging
+      --rpc <RPC>            RPC URL, default is `https://api.mainnet-beta.solana.com`
   -h, --help                 Print help information (use `--help` for more detail)
   -V, --version              Print version information
 ```
