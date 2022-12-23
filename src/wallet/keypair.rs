@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+use std::str::FromStr;
+
 use base58::{FromBase58, ToBase58};
 use ed25519_dalek::{PublicKey, SecretKey};
 use rand::rngs::OsRng;
@@ -240,6 +242,26 @@ impl KeyPair {
     pub fn qr_code(&self) -> qrcode::QrCode {
         // SAFETY: the public key is always 32 bytes long, so it will never panic.
         qrcode::QrCode::new(self.public_key.as_bytes().to_base58()).unwrap()
+    }
+
+    /// Get the balance of the keypair
+    pub fn balance(&self, args: &AppArgs) -> SolwalrsResult<u64> {
+        crate::info!(
+            args,
+            "Trying to get the balance of the keypair `{}`, `{}`",
+            self.name,
+            short_public_key(&self.public_key)
+        );
+        let balance = utils::rpc_client(args)?
+            .get_balance(&FromStr::from_str(&self.public_key.as_bytes().to_base58()).unwrap())
+            .map_err(|err| SolwalrsError::RpcError(err.to_string()))?;
+        crate::info!(
+            args,
+            "The balance of the keypair `{}` is {} SOL",
+            self.name,
+            balance
+        );
+        Ok(balance)
     }
 }
 
