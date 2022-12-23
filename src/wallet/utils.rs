@@ -61,6 +61,17 @@ pub fn app_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
     }
 }
 
+/// Clean the wallet, it will remove the wallet file
+pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
+    crate::info!(args, "Trying to clean the wallet");
+    let app_file = app_file_path(args)?;
+    crate::info!(args, "Removing the wallet file");
+    std::fs::remove_file(&app_file)
+        .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
+    crate::info!(args, "Wallet file removed successfully");
+    Ok(())
+}
+
 /// Create a fernet by the given key, using it to encrypt and decrypt.
 /// The key must be 32 bytes long.
 pub fn get_fernet(key: &[u8]) -> SolwalrsResult<Fernet> {
