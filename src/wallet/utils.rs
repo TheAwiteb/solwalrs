@@ -75,7 +75,6 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
 
 /// Returns the RPC client, if the `--rpc` flag is not set, it will use the default RPC client.
 /// The default RPC client is `https://api.mainnet-beta.solana.com`
-#[allow(dead_code)] // Will be used in the future
 pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
     if let Some(rpc) = &args.rpc {
         Ok(RpcClient::new(rpc))
