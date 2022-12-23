@@ -113,7 +113,7 @@ fn create_rows(header: Vec<&str>, rows: Vec<Vec<&str>>) -> Vec<Vec<String>> {
 }
 
 /// Create a table with the given header and rows, table will be vertical
-#[cfg(not(target_os = "Android"))]
+#[cfg(not(target_os = "android"))]
 pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
     let rows = create_rows(header, rows);
     let max_len = rows
@@ -138,7 +138,7 @@ pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
 }
 
 /// Create a table with the given header and rows, table will be vertical
-#[cfg(target_os = "Android")]
+#[cfg(target_os = "android")]
 pub fn print_table(header: Vec<&str>, rows: Vec<Vec<&str>>) {
     let rows = create_rows(header, rows);
     // The divider of the table
