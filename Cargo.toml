@@ -6,20 +6,22 @@ repository = "https://github.com/TheAwiteb/solwalrs"
 readme = "README.md"
 categories = ["command-line-utilities"]
 keywords = ["solana", "wallet", "cli"]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
-base58 = "0.2.0"
-base64 = "0.13.1"
-clap = { version = "4.0.29", features = ["derive"] }
-directories = "4.0.1"
-ed25519-dalek = { version = "1.0.1", features = ["serde"] }
-fernet = "0.2.0"
-prettylog = "0.1.4"
-rand = "0.7.3"
-rpassword = "7.2.0"
-serde = { version = "1.0.148", features = ["derive"] }
-serde_json = "1.0.89"
-sysexits = "0.3.4"
-thiserror = "1.0.37"
+base58 = "= 0.2.0"
+base64 = "= 0.20.0"
+clap = { version = "= 4.0.32", features = ["derive"] }
+directories = "= 4.0.1"
+ed25519-dalek = { version = "= 1.0.1", features = ["serde"] }
+fernet = "= 0.2.0"
+prettylog = "= 0.1.4"
+rand = "= 0.7.3"
+rpassword = "= 7.2.0"
+serde = { version = "= 1.0.151", features = ["derive"] }
+serde_json = "= 1.0.91"
+sysexits = "= 0.3.4"
+thiserror = "= 1.0.38"
+qrcode = "= 0.12.0"
+image = "= 0.23.14"

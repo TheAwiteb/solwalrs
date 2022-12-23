@@ -104,17 +104,26 @@ impl Wallet {
     /// Note: this function will not add the keypair to the wallet file, you need to call `Wallet::export` to do that
     pub fn add_keypair(
         &mut self,
-        mut new_keypair: keypair::KeyPair,
-        is_default: bool,
+        new_keypair: keypair::KeyPair,
         args: &AppArgs,
     ) -> SolwalrsResult<()> {
         crate::info!(args, "Trying to add {new_keypair:?} to the wallet");
+        if let Some(kp) = self
+            .keypairs
+            .iter()
+            .find(|kp| kp.public_key == new_keypair.public_key)
+        {
+            return Err(SolwalrsError::Other(format!(
+                "The public key `{}` already exists in the wallet with the name `{}`",
+                short_public_key(&kp.public_key),
+                kp.name
+            )));
+        }
         if self.get_keypair(&new_keypair.name, args).is_err() {
-            if is_default {
+            if new_keypair.is_default {
                 self.keypairs
                     .iter_mut()
-                    .for_each(|kp| kp.is_default = false);
-                new_keypair.is_default = true;
+                    .for_each(|kp| kp.is_default = kp.name == new_keypair.name);
             }
             crate::info!(args, "{new_keypair:?} added to the wallet successfully");
             self.keypairs.push(new_keypair);

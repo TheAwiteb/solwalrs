@@ -19,10 +19,31 @@ mod commands;
 use clap::Parser;
 pub use commands::*;
 
+use crate::errors::Result as SolwalrsResult;
+use crate::wallet::Wallet;
+
 const COPYRIGHT: &str = "Solwalrs  Copyright (C) 2022  Solwalrs contributors <https://github.com/TheAwiteb/solwalrs/graphs/contributors>
 This program comes with ABSOLUTELY NO WARRANTY; for details see <https://www.gnu.org/licenses/gpl-3.0.html>.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see <https://www.gnu.org/licenses/gpl-3.0.html> for details.";
+
+/// Trait to get the keypair name if provided or the default keypair name
+pub trait GetKeypairName {
+    /// Get the keypair name if provided or the default keypair name
+    fn get_keypair_name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String>;
+}
+
+impl<T> GetKeypairName for Option<T>
+where
+    T: ToString,
+{
+    fn get_keypair_name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String> {
+        self.as_ref()
+            .map(|name| name.to_string())
+            .map(Ok)
+            .unwrap_or_else(|| wallet.default_keypair(args).map(|kp| kp.name.clone()))
+    }
+}
 
 #[derive(Parser, Debug)]
 pub struct AppArgs {
@@ -44,6 +65,8 @@ pub enum Commands {
     New(NewCommand),
     #[clap(visible_alias = "ls")]
     List(ListCommand),
+    #[clap(visible_alias = "i")]
+    Import(ImportCommand),
 }
 
 #[derive(Parser, Debug)]

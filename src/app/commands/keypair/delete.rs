@@ -17,7 +17,7 @@
 use base58::ToBase58;
 use clap::Parser;
 
-use crate::app::AppArgs;
+use crate::app::{AppArgs, GetKeypairName};
 use crate::errors::Result as SolwalrsResult;
 use crate::wallet::{print_table, Wallet};
 
@@ -33,12 +33,7 @@ impl DeleteCommand {
     /// Note: this function will not delete the keypair from the wallet file, you need to call `Wallet::export` to do that
     #[must_use = "deleting a keypair will return the deleted keypair as a table"]
     pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
-        // TODO: seprate the name logic in a function
-        let name = self
-            .name
-            .clone()
-            .map(Ok)
-            .unwrap_or_else(|| Ok(wallet.default_keypair(args)?.name.clone()))?;
+        let name = self.name.get_keypair_name(wallet, args)?;
         crate::info!(args, "Trying to delete `{name}` from {wallet:?}");
         let deleted_keypair = wallet.delete_keypair(&name, args);
         println!("Done deleting successfully!");

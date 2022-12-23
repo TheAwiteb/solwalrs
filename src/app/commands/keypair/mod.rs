@@ -16,11 +16,13 @@
 
 mod default;
 mod delete;
+mod qrcode;
 
+pub use self::qrcode::QrCodeCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
 
-use crate::{errors::Result as SolwalrsResult, utils, wallet::Wallet};
+use crate::{errors::Result as SolwalrsResult, wallet::Wallet};
 
 use clap::Subcommand;
 
@@ -32,24 +34,25 @@ pub enum KeypairCommand {
     #[clap(visible_alias = "D")]
     Delete(DeleteCommand),
     SetDefault(DefaultCommand),
+    #[clap(visible_alias = "qr")]
+    QrCode(QrCodeCommand),
 }
 
 impl KeypairCommand {
     /// Run the command
-    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         use KeypairCommand::*;
 
-        let password = utils::get_password()?;
-        let mut wallet = Wallet::load(&password, args)?;
         crate::info!(args, "The keypair command is: {self:?}");
         match self {
             Delete(command) => {
-                command.run(&mut wallet, args)?;
-                wallet.export(&password, args)?;
+                command.run(wallet, args)?;
             }
             SetDefault(command) => {
-                command.run(&mut wallet, args)?;
-                wallet.export(&password, args)?;
+                command.run(wallet, args)?;
+            }
+            QrCode(command) => {
+                command.run(wallet, args)?;
             }
         };
         Ok(())
