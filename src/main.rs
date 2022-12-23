@@ -47,7 +47,7 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
             New(new_command) => new_command.run(&mut wallet, &app.args)?,
             List(list_command) => list_command.run(&mut wallet, &app.args)?,
             Import(import_command) => import_command.run(&mut wallet, &app.args)?,
-            Completions(completions_command) => completions_command.run()?,
+            Completions(completions_command) => completions_command.run(),
         };
         if command.needs_wallet() {
             wallet.export(&password, &app.args)?;

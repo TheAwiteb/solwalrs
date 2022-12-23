@@ -27,13 +27,12 @@ pub struct CompletionsCommand {
 
 impl CompletionsCommand {
     /// Run the command
-    pub fn run(&self) -> crate::errors::Result<()> {
+    pub fn run(&self) {
         clap_complete::generate(
             self.shell,
             &mut crate::app::Commands::command(),
             "solwalrs",
             &mut io::stdout(),
         );
-        Ok(())
     }
 }
