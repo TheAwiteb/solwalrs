@@ -55,6 +55,9 @@ pub struct AppArgs {
     /// Verbose mode, for debugging
     #[clap(short, long)]
     pub verbose: bool,
+    /// RPC URL, default is `https://api.mainnet-beta.solana.com`
+    #[clap(long)]
+    pub rpc: Option<url::Url>,
 }
 
 #[derive(Parser, Debug)]
