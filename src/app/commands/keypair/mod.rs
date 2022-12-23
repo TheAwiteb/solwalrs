@@ -16,7 +16,9 @@
 
 mod default;
 mod delete;
+mod qrcode;
 
+pub use self::qrcode::QrCodeCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
 
@@ -32,6 +34,8 @@ pub enum KeypairCommand {
     #[clap(visible_alias = "D")]
     Delete(DeleteCommand),
     SetDefault(DefaultCommand),
+    #[clap(visible_alias = "qr")]
+    QrCode(QrCodeCommand),
 }
 
 impl KeypairCommand {
@@ -45,6 +49,9 @@ impl KeypairCommand {
                 command.run(wallet, args)?;
             }
             SetDefault(command) => {
+                command.run(wallet, args)?;
+            }
+            QrCode(command) => {
                 command.run(wallet, args)?;
             }
         };

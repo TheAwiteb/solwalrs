@@ -236,6 +236,11 @@ impl KeyPair {
             is_default: self.is_default,
         })
     }
+
+    pub fn qr_code(&self) -> qrcode::QrCode {
+        // SAFETY: the public key is always 32 bytes long, so it will never panic.
+        qrcode::QrCode::new(self.public_key.as_bytes().to_base58()).unwrap()
+    }
 }
 
 impl EncryptedKeyPair {
