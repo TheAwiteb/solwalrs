@@ -55,11 +55,12 @@ A simple and easy to use CLI Solana wallet
 Usage: solwalrs [OPTIONS] [COMMAND]
 
 Commands:
-  keypair  Commands for managing a keypair [aliases: kp]
-  new      Generate a new keypair [aliases: n]
-  list     List all keypairs [aliases: ls]
-  import   Import new keypair by private key or secret key (input prompt) [aliases: i]
-  help     Print this message or the help of the given subcommand(s)
+  keypair      Commands for managing a keypair [aliases: kp]
+  new          Generate a new keypair [aliases: n]
+  list         List all keypairs [aliases: ls]
+  import       Import new keypair by private key or secret key (input prompt) [aliases: i]
+  completions  Generate shell completions [aliases: cp]
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
       --app-file <APP_FILE>  The path to the app file
@@ -68,6 +69,14 @@ Options:
   -V, --version              Print version information
 ```
 > Use `solwalrs help <command>` to get more information about a command. For example, `solwalrs help keypair`
+
+## Auto completion
+You can enable auto completion for bash, elvish, fish, powershell and zsh, Just put the following line in your shell configuration file:
+```bash
+solwalrs completions <shell> | source
+```
+Note: to show the completions of options, you need to type `--` and press tab to show the options.
+For commands, you can just press tab to show the commands.
 
 ## Features
 - Supports multiple keypairs
