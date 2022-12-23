@@ -76,6 +76,7 @@ Options:
 - View your keypairs
 - Delete your keypair
 - Import a keypair from a private key and secret key (base58 encoded or array of bytes)
+- Qr code generator for your public key, export to image or print to console
 
 ## Our goals (roadmap)
 You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)
@@ -93,6 +94,8 @@ If you discover a security vulnerability within this project, please send me an 
 | Create a new keypair | View your keypairs |
 |:---:|:---:|
 | ![Create a new keypair](https://i.suar.me/A8YlV/l) | ![View your keypairs](https://i.suar.me/yMm47/l)
+| Qr code image | Qr code console |
+| ![Qr code image](https://i.suar.me/8aWrE/l) | ![Qr code console](https://i.suar.me/j91my/l)
 
 ## Tested on
 - Pop!_OS 21.04

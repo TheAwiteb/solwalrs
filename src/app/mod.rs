@@ -16,7 +16,6 @@
 
 mod commands;
 
-use clap::builder::{ValueParser, ValueParserFactory};
 use clap::Parser;
 pub use commands::*;
 
@@ -28,28 +27,21 @@ This program comes with ABSOLUTELY NO WARRANTY; for details see <https://www.gnu
 This is free software, and you are welcome to redistribute it
 under certain conditions; see <https://www.gnu.org/licenses/gpl-3.0.html> for details.";
 
-/// The name of the keypair to work with.
-/// This struct help to get the keypair name from the command line.
-#[derive(Debug, Clone)]
-pub struct KeypairName {
-    name: Option<String>,
+/// Trait to get the keypair name if provided or the default keypair name
+pub trait GetKeypairName {
+    /// Get the keypair name if provided or the default keypair name
+    fn get_keypair_name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String>;
 }
 
-impl KeypairName {
-    /// Get the name of the keypair, if the name is not provided, the default keypair name will be used.
-    pub fn name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String> {
-        self.name
-            .clone()
+impl<T> GetKeypairName for Option<T>
+where
+    T: ToString,
+{
+    fn get_keypair_name(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<String> {
+        self.as_ref()
+            .map(|name| name.to_string())
             .map(Ok)
-            .unwrap_or_else(|| Ok(wallet.default_keypair(args)?.name.clone()))
-    }
-}
-
-impl ValueParserFactory for KeypairName {
-    type Parser = ValueParser;
-
-    fn value_parser() -> Self::Parser {
-        ValueParser::string()
+            .unwrap_or_else(|| wallet.default_keypair(args).map(|kp| kp.name.clone()))
     }
 }
 

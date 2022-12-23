@@ -20,6 +20,9 @@ use sysexits::ExitCode;
 /// Solwalrs errors
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// I/O error
+    #[error("{0}")]
+    IO(String),
     /// Any error with the app data directory
     #[error("{0}")]
     AppDataDir(String),
@@ -58,7 +61,7 @@ impl Error {
     pub fn exit_code(&self) -> StdExitCode {
         use Error::*;
         match self {
-            AppDataDir(_) => ExitCode::IoErr.report(),
+            AppDataDir(_) | IO(_) => ExitCode::IoErr.report(),
             InvalidPassword(_) => ExitCode::DataErr.report(),
             DuplicateKeyPairName(_) => ExitCode::Usage.report(),
             _ => ExitCode::Software.report(),
