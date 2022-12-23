@@ -14,12 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-mod completions;
-mod import;
-pub mod keypair;
-mod list;
-mod new;
-pub use completions::CompletionsCommand;
-pub use import::ImportCommand;
-pub use list::ListCommand;
-pub use new::NewCommand;
+use std::io;
+
+use clap::{CommandFactory, Parser};
+
+/// Generate shell completions
+#[derive(Parser, Debug)]
+pub struct CompletionsCommand {
+    /// The shell to generate completions for
+    pub shell: clap_complete::Shell,
+}
+
+impl CompletionsCommand {
+    /// Run the command
+    pub fn run(&self) -> crate::errors::Result<()> {
+        clap_complete::generate(
+            self.shell,
+            &mut crate::app::Commands::command(),
+            "solwalrs",
+            &mut io::stdout(),
+        );
+        Ok(())
+    }
+}

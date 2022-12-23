@@ -35,16 +35,23 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
     if let Some(command) = &app.command {
         info!(&app.args, "The command is {command:?}");
 
-        let password = utils::get_password()?;
-        let mut wallet = Wallet::load(&password, &app.args)?;
+        let mut wallet = Wallet::new();
+        let mut password = String::new();
+        if command.needs_wallet() {
+            password = utils::get_password()?;
+            wallet = Wallet::load(&password, &app.args)?;
+        }
 
         match command {
             Keypair(keypair_command) => keypair_command.run(&mut wallet, &app.args)?,
             New(new_command) => new_command.run(&mut wallet, &app.args)?,
             List(list_command) => list_command.run(&mut wallet, &app.args)?,
             Import(import_command) => import_command.run(&mut wallet, &app.args)?,
+            Completions(completions_command) => completions_command.run()?,
         };
-        wallet.export(&password, &app.args)?;
+        if command.needs_wallet() {
+            wallet.export(&password, &app.args)?;
+        }
     }
     Ok(())
 }
