@@ -66,7 +66,7 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
     crate::info!(args, "Trying to clean the wallet");
     let app_file = app_file_path(args)?;
     crate::info!(args, "Removing the wallet file");
-    std::fs::remove_file(&app_file)
+    std::fs::remove_file(app_file)
         .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
     crate::info!(args, "Wallet file removed successfully");
     Ok(())
