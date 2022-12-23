@@ -82,7 +82,7 @@ pub fn get_fernet(key: &[u8]) -> SolwalrsResult<Fernet> {
 }
 
 /// Encrypt the given plaintext with the given key.
-/// The password must be 32 bytes long. will return `None` if the password is not 32 bytes long.
+/// The password must be 32 bytes long. will return `Error::InvalidPassword` if the password is not 32 bytes long.
 pub fn encrypt(password: &[u8], plaintext: &[u8]) -> SolwalrsResult<String> {
     let fernet = get_fernet(password)?;
     Ok(fernet.encrypt(plaintext))
