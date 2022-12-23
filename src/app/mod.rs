@@ -67,6 +67,8 @@ pub enum Commands {
     List(ListCommand),
     #[clap(visible_alias = "i")]
     Import(ImportCommand),
+    #[clap(visible_alias = "cp")]
+    Completions(CompletionsCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -76,4 +78,12 @@ pub struct App {
     pub command: Option<Commands>,
     #[clap(flatten)]
     pub args: AppArgs,
+}
+
+impl Commands {
+    /// Whether the command needs a wallet
+    pub fn needs_wallet(&self) -> bool {
+        use Commands::*;
+        !matches!(self, Completions(_))
+    }
 }
