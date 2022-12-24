@@ -55,19 +55,30 @@ A simple and easy to use CLI Solana wallet
 Usage: solwalrs [OPTIONS] [COMMAND]
 
 Commands:
-  keypair  Commands for managing a keypair [aliases: kp]
-  new      Generate a new keypair [aliases: n]
-  list     List all keypairs [aliases: ls]
-  import   Import new keypair by private key or secret key (input prompt) [aliases: i]
-  help     Print this message or the help of the given subcommand(s)
+  keypair      Commands for managing a keypair [aliases: kp]
+  new          Generate a new keypair [aliases: n]
+  list         List all keypairs [aliases: ls]
+  import       Import new keypair by private key or secret key (input prompt) [aliases: i]
+  completions  Generate shell completions [aliases: cp]
+  clean        Clean the wallet. This will remove all the keypairs from the wallet
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
       --app-file <APP_FILE>  The path to the app file
   -v, --verbose              Verbose mode, for debugging
+      --rpc <RPC>            RPC URL, default is `https://api.mainnet-beta.solana.com`
   -h, --help                 Print help information (use `--help` for more detail)
   -V, --version              Print version information
 ```
 > Use `solwalrs help <command>` to get more information about a command. For example, `solwalrs help keypair`
+
+## Auto completion
+You can enable auto completion for bash, elvish, fish, powershell and zsh, Just put the following line in your shell configuration file:
+```bash
+solwalrs completions <shell> | source
+```
+Note: to show the completions of options, you need to type `--` and press tab to show the options.
+For commands, you can just press tab to show the commands.
 
 ## Features
 - Supports multiple keypairs
@@ -77,6 +88,20 @@ Options:
 - Delete your keypair
 - Import a keypair from a private key and secret key (base58 encoded or array of bytes)
 - Qr code generator for your public key, export to image or print to console
+- Clean the app file (remove all keypairs)
+- Auto completion for bash, elvish, fish, powershell and zsh
+- Supports changing the RPC URL
+- Supports SPL tokens
+- View your SOL/SPL balance
+
+## Adding a new SPL token
+Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:
+1. Open the `src/wallet/spl.rs` file
+2. Add the SPL to `Tokens` enum
+3. Add the mint address to `mint_address` instance function
+4. Add the lamports per token to `lamports_per_token` instance function (if it's not 6 decimals)
+5. Open a pull request, I will review it and merge it
+>  Note the SPL token must be popular to be added to the wallet
 
 ## Our goals (roadmap)
 You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)

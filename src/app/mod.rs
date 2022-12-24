@@ -55,6 +55,9 @@ pub struct AppArgs {
     /// Verbose mode, for debugging
     #[clap(short, long)]
     pub verbose: bool,
+    /// RPC URL, default is `https://api.mainnet-beta.solana.com`
+    #[clap(long)]
+    pub rpc: Option<url::Url>,
 }
 
 #[derive(Parser, Debug)]
@@ -67,6 +70,9 @@ pub enum Commands {
     List(ListCommand),
     #[clap(visible_alias = "i")]
     Import(ImportCommand),
+    #[clap(visible_alias = "cp")]
+    Completions(CompletionsCommand),
+    Clean(CleanCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -76,4 +82,12 @@ pub struct App {
     pub command: Option<Commands>,
     #[clap(flatten)]
     pub args: AppArgs,
+}
+
+impl Commands {
+    /// Whether the command needs a wallet
+    pub fn needs_wallet(&self) -> bool {
+        use Commands::*;
+        !matches!(self, Completions(_) | Clean(_))
+    }
 }
