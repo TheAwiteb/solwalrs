@@ -1919,6 +1919,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "name-variant"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6c053f5dc2372fc0489f34614d5064df83b42c9918b6df8f8d9410010d547f6"
+dependencies = [
+ "proc-macro2 1.0.47",
+ "quote 1.0.21",
+ "syn 1.0.105",
+]
+
+[[package]]
 name = "nix"
 version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3629,12 +3640,14 @@ dependencies = [
  "ed25519-dalek",
  "fernet",
  "image",
+ "name-variant",
  "prettylog",
  "qrcode",
  "rand 0.7.3",
  "rpassword 7.2.0",
  "serde",
  "serde_json",
+ "solana-account-decoder",
  "solana-client",
  "sysexits",
  "thiserror",
