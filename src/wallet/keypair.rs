@@ -257,6 +257,18 @@ impl KeyPair {
             utils::sol_balance(args, &self.public_key)
         }
     }
+
+    /// Request airdrop to the keypair, the amount is in lamports (1 SOL = 1_000_000_000 lamports)
+    #[must_use = "requesting airdrop will return the signature of the transaction, which can be used to check the status of the transaction"]
+    pub fn request_airdrop(&self, amount: u64, args: &AppArgs) -> SolwalrsResult<String> {
+        crate::info!(
+            args,
+            "Trying to request airdrop to the keypair `{}`, `{}`",
+            self.name,
+            short_public_key(&self.public_key)
+        );
+        utils::request_airdrop(args, &self.public_key, amount)
+    }
 }
 
 impl EncryptedKeyPair {

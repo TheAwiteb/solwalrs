@@ -133,6 +133,77 @@ pub fn spl_balance(args: &AppArgs, public_key: &PublicKey, token: &Tokens) -> So
     }
 }
 
+/// Request airdrop to the given public key, the amount is in lamports, so 1 SOL = 1_000_000_000 lamports
+#[must_use = "This function returns a signature, you should check if the airdrop was successful"]
+pub fn request_airdrop(
+    args: &AppArgs,
+    public_key: &PublicKey,
+    amount: u64,
+) -> SolwalrsResult<String> {
+    crate::info!(
+        args,
+        "Requesting an airdrop of {} lamports to the keypair `{}`",
+        amount,
+        short_public_key(public_key)
+    );
+    let client = rpc_client(args)?;
+    let pubk = public_key.as_bytes().to_base58();
+    // SAFETY: This is safe because we are sure that the public key is valid
+    let signature = client
+        .request_airdrop(&pubk.parse().unwrap(), amount)
+        .map_err(|err| {
+            SolwalrsError::RpcError(format!(
+                "Error while requesting an airdrop of {} lamports to the keypair `{}`: {err}",
+                amount,
+                short_public_key(public_key)
+            ))
+        })?;
+    crate::info!(
+        args,
+        "Airdrop of {} lamports requested successfully, the singature is `{signature}`",
+        amount
+    );
+
+    Ok(signature.to_string())
+}
+
+/// Confirm the given signature, if the signature is not confirmed, it will wait until it is confirmed
+pub fn confirm_signature(args: &AppArgs, signature: &str) -> SolwalrsResult<()> {
+    crate::info!(args, "Confirming the signature `{signature}`");
+    let client = rpc_client(args)?;
+    loop {
+        // SAFETY: This is safe because we are sure that the signature is valid
+        let status = client
+            .confirm_transaction(&signature.parse().unwrap())
+            .map_err(|err| {
+                SolwalrsError::RpcError(format!(
+                    "Error while getting the status of the airdrop singature `{signature}`: {err}"
+                ))
+            })?;
+        if status {
+            break;
+        }
+        crate::info!(args, "Waiting for the airdrop to be confirmed...");
+        std::thread::sleep(std::time::Duration::from_secs(3));
+    }
+    crate::info!(args, "Signature `{signature}` confirmed successfully");
+    Ok(())
+}
+
+/// Retuns the transaction on the explorer, if the rpc is not a known cluster, will return `None`
+pub fn transaction_url(signature: &str, rpc: &str) -> Option<String> {
+    let cluster = if rpc.contains("testnet") {
+        Some("testnet")
+    } else if rpc.contains("devnet") {
+        Some("devnet")
+    } else if rpc.contains("mainnet") {
+        Some("mainnet")
+    } else {
+        None
+    };
+    cluster.map(|cluster| format!("https://explorer.solana.com/tx/{signature}?cluster={cluster}"))
+}
+
 /// Returns the SOL balance of the given public key
 pub fn sol_balance(args: &AppArgs, public_key: &PublicKey) -> SolwalrsResult<u64> {
     crate::info!(

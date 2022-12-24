@@ -97,6 +97,7 @@ To generate Solwalrs completions, run `solwalrs completions > <the-name-above-as
 - Supports changing the RPC URL
 - Supports SPL tokens
 - View your SOL/SPL balance
+- Airdrop SOL
 
 ## Adding a new SPL token
 Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:

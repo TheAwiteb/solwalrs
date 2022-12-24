@@ -18,45 +18,47 @@ use clap::Parser;
 
 use crate::app::GetKeypairName;
 use crate::errors::Result as SolwalrsResult;
-use crate::wallet::{short_public_key, Tokens};
+use crate::wallet::{confirm_signature, transaction_url};
 use crate::{app::AppArgs, wallet::Wallet};
 
-/// Get the balance of a keypair, SOL/SPL
-#[derive(Parser, Debug)]
-pub struct BalanceCommand {
-    /// The name of the keypair to get the balance of (defaults to the default wallet)
+/// Request an airdrop to a keypair
+#[derive(Debug, Parser)]
+pub struct AirdropCommand {
+    /// The name of the keypair to airdrop to (defaults to the default wallet)
     pub name: Option<String>,
-    /// Whether to show the balance in lamports
+    /// The amount to airdrop
+    #[clap(short, long)]
+    pub amount: f64,
+    /// Whether the amount is in lamports
     #[clap(short, long)]
     pub lamports: bool,
-    /// The spl token to get the balance of, if not specified, the SOL balance will be shown
-    #[clap(long)]
-    pub spl: Option<Tokens>,
 }
 
-impl BalanceCommand {
+impl AirdropCommand {
     pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         let name = self.name.get_keypair_name(wallet, args)?;
         let keypair = wallet.get_keypair(&name, args)?;
-        let balance = keypair.balance(args, self.spl.as_ref())?;
-        let token_name = self.spl.as_ref().map(|token| token.name()).unwrap_or("SOL");
-        let message = format!(
-            "The `{}` address has",
-            short_public_key(&keypair.public_key)
-        );
-        if self.lamports {
-            println!("{message} `{balance}` {token_name} lamports");
+        let amount = if !self.lamports {
+            (self.amount * 1e9) as u64
         } else {
-            println!(
-                "{message} `{}` {token_name}",
-                balance as f64
-                    / self
-                        .spl
-                        .as_ref()
-                        .map(|s| s.lamports_per_token())
-                        .unwrap_or(1e9)
-            );
-        }
+            self.amount as u64
+        };
+        let signature = keypair.request_airdrop(amount, args)?;
+        let rpc = &args
+            .rpc
+            .as_ref()
+            .map(|r| r.to_string())
+            .unwrap_or_else(|| "https://api.mainnet-beta.solana.com".to_owned());
+        println!(
+            "Waiting for airdrop to be confirmed, this may take a while...\n{}",
+            transaction_url(&signature, rpc)
+                .map(|url| format!("Transaction URL: {}", url))
+                .unwrap_or_else(|| format!(
+                "Cannot get the transaction url for the signature `{signature}` in the rpc `{rpc}`"
+            ))
+        );
+        confirm_signature(args, &signature)?;
+        println!("Transaction confirmed!");
         Ok(())
     }
 }
