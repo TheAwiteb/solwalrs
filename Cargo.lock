@@ -3630,7 +3630,7 @@ dependencies = [
 
 [[package]]
 name = "solwalrs"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "base58",
  "base64 0.20.0",
