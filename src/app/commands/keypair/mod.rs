@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+mod balance;
 mod default;
 mod delete;
 mod qrcode;
 
 pub use self::qrcode::QrCodeCommand;
+pub use balance::BalanceCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
 
@@ -36,6 +38,8 @@ pub enum KeypairCommand {
     SetDefault(DefaultCommand),
     #[clap(visible_alias = "qr")]
     QrCode(QrCodeCommand),
+    #[clap(visible_alias = "b")]
+    Balance(BalanceCommand),
 }
 
 impl KeypairCommand {
@@ -45,15 +49,10 @@ impl KeypairCommand {
 
         crate::info!(args, "The keypair command is: {self:?}");
         match self {
-            Delete(command) => {
-                command.run(wallet, args)?;
-            }
-            SetDefault(command) => {
-                command.run(wallet, args)?;
-            }
-            QrCode(command) => {
-                command.run(wallet, args)?;
-            }
+            Delete(command) => command.run(wallet, args)?,
+            SetDefault(command) => command.run(wallet, args)?,
+            QrCode(command) => command.run(wallet, args)?,
+            Balance(command) => command.run(wallet, args)?,
         };
         Ok(())
     }

@@ -23,9 +23,11 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 mod keypair;
+mod spl;
 mod utils;
 
 pub use keypair::*;
+pub use spl::*;
 pub use utils::*;
 
 /// The clean wallet (decrypted)

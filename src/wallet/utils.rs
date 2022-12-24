@@ -26,7 +26,10 @@ use crate::{
 use base58::ToBase58;
 use ed25519_dalek::PublicKey;
 use fernet::Fernet;
+use solana_account_decoder::UiAccountData;
 use solana_client::rpc_client::RpcClient;
+
+use super::Tokens;
 
 /// Returns `ProjectDirs` containing all the project directories
 pub fn app_data_dir() -> SolwalrsResult<PathBuf> {
@@ -75,7 +78,6 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
 
 /// Returns the RPC client, if the `--rpc` flag is not set, it will use the default RPC client.
 /// The default RPC client is `https://api.mainnet-beta.solana.com`
-#[allow(dead_code)] // Will be used in the future
 pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
     if let Some(rpc) = &args.rpc {
         Ok(RpcClient::new(rpc))
@@ -84,6 +86,69 @@ pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
             "https://api.mainnet-beta.solana.com".to_string(),
         ))
     }
+}
+
+/// Returns the SPL balance of the given public key
+pub fn spl_balance(args: &AppArgs, public_key: &PublicKey, token: &Tokens) -> SolwalrsResult<u64> {
+    let client = rpc_client(args)?;
+    let short_pubk = short_public_key(public_key);
+    let pubk = public_key.as_bytes().to_base58();
+    let token_name = token.name();
+    crate::info!(
+        args,
+        "Trying to get the {token_name} balance of {short_pubk}"
+    );
+
+    // SAFETY: This is safe because we are sure that the public key is valid
+    match client
+        .get_token_accounts_by_owner(&pubk.parse().unwrap(), token.mint_address())
+        .map_err(|err| SolwalrsError::RpcError(err.to_string()))?
+        .first()
+        .ok_or_else(|| {
+            SolwalrsError::Other(format!("No {token_name} account found for `{short_pubk}`",))
+        })?
+        .account
+        .data
+    {
+        UiAccountData::Json(ref data) => data
+            .parsed
+            .get("info")
+            .and_then(|info| {
+                info.get("tokenAmount").and_then(|token_amount| {
+                    token_amount
+                        .get("amount")
+                        .and_then(|amount| amount.as_str())
+                        .and_then(|amount| amount.parse::<u64>().ok())
+                })
+            })
+            .ok_or_else(|| {
+                SolwalrsError::Other(format!(
+                    "Failed to parse the {token_name} balanace of `{short_pubk}`",
+                ))
+            }),
+        // This should never happen
+        _ => Err(SolwalrsError::Other(format!(
+            "Failed to parse the {token_name} balanace of `{short_pubk}`",
+        ))),
+    }
+}
+
+/// Returns the SOL balance of the given public key
+pub fn sol_balance(args: &AppArgs, public_key: &PublicKey) -> SolwalrsResult<u64> {
+    crate::info!(
+        args,
+        "Getting the balance of the keypair `{}`",
+        short_public_key(public_key)
+    );
+    let client = rpc_client(args)?;
+    let pubk = public_key.as_bytes().to_base58();
+    // SAFETY: This is safe because we are sure that the public key is valid
+    client.get_balance(&pubk.parse().unwrap()).map_err(|err| {
+        SolwalrsError::RpcError(format!(
+            "Error while getting the balance of the keypair `{}`: {err}",
+            short_public_key(public_key)
+        ))
+    })
 }
 
 /// Create a fernet by the given key, using it to encrypt and decrypt.

@@ -19,7 +19,7 @@ use ed25519_dalek::{PublicKey, SecretKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
-use super::{short_public_key, utils};
+use super::{short_public_key, utils, Tokens};
 use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
@@ -60,6 +60,7 @@ impl Clone for KeyPair {
             name: self.name.clone(),
             // Copy is implemented for PublicKey
             public_key: self.public_key,
+            // SAFETY: We know that the secret key is valid, so we can create a new one from the bytes
             secret_key: SecretKey::from_bytes(&self.secret_key.to_bytes()).unwrap(),
             private_key: self.private_key.clone(),
             is_default: self.is_default,
@@ -240,6 +241,21 @@ impl KeyPair {
     pub fn qr_code(&self) -> qrcode::QrCode {
         // SAFETY: the public key is always 32 bytes long, so it will never panic.
         qrcode::QrCode::new(self.public_key.as_bytes().to_base58()).unwrap()
+    }
+
+    /// Get the balance of the keypair
+    pub fn balance(&self, args: &AppArgs, spl: Option<&Tokens>) -> SolwalrsResult<u64> {
+        crate::info!(
+            args,
+            "Trying to get the balance of the keypair `{}`, `{}`",
+            self.name,
+            short_public_key(&self.public_key)
+        );
+        if let Some(token) = spl {
+            utils::spl_balance(args, &self.public_key, token)
+        } else {
+            utils::sol_balance(args, &self.public_key)
+        }
     }
 }
 
