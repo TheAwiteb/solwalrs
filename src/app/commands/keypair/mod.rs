@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+mod airdrop;
 mod balance;
 mod default;
 mod delete;
 mod qrcode;
 
 pub use self::qrcode::QrCodeCommand;
+pub use airdrop::AirdropCommand;
 pub use balance::BalanceCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
@@ -40,6 +42,8 @@ pub enum KeypairCommand {
     QrCode(QrCodeCommand),
     #[clap(visible_alias = "b")]
     Balance(BalanceCommand),
+    #[clap(visible_alias = "a")]
+    Airdrop(AirdropCommand),
 }
 
 impl KeypairCommand {
@@ -53,6 +57,7 @@ impl KeypairCommand {
             SetDefault(command) => command.run(wallet, args)?,
             QrCode(command) => command.run(wallet, args)?,
             Balance(command) => command.run(wallet, args)?,
+            Airdrop(command) => command.run(wallet, args)?,
         };
         Ok(())
     }
