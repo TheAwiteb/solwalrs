@@ -89,6 +89,19 @@ For commands, you can just press tab to show the commands.
 - Import a keypair from a private key and secret key (base58 encoded or array of bytes)
 - Qr code generator for your public key, export to image or print to console
 - Clean the app file (remove all keypairs)
+- Auto completion for bash, elvish, fish, powershell and zsh
+- Supports changing the RPC URL
+- Supports SPL tokens
+- View your SOL/SPL balance
+
+## Adding a new SPL token
+Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:
+1. Open the `src/wallet/spl.rs` file
+2. Add the SPL to `Tokens` enum
+3. Add the mint address to `mint_address` instance function
+4. Add the lamports per token to `lamports_per_token` instance function (if it's not 6 decimals)
+5. Open a pull request, I will review it and merge it
+>  Note the SPL token must be popular to be added to the wallet
 
 ## Our goals (roadmap)
 You can see our goals in this issue: [#1](https://github.com/TheAwiteb/solwalrs/issues/1)
