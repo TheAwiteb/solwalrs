@@ -21,9 +21,10 @@ use crate::errors::Result as SolwalrsResult;
 use crate::wallet::{short_public_key, Tokens};
 use crate::{app::AppArgs, wallet::Wallet};
 
+/// Get the balance of a keypair, SOL/SPL
 #[derive(Parser, Debug)]
 pub struct BalanceCommand {
-    /// The name of the keypair to get the balance of
+    /// The name of the keypair to get the balance of (defaults to the default wallet)
     pub name: Option<String>,
     /// Whether to show the balance in lamports
     #[clap(short, long)]
