@@ -74,15 +74,15 @@ Options:
 
 ## Auto completion
 You can enable auto completion for bash, fish, powershell and zsh.<br>
-For Bash, move `solwalrs` to `$XDG_CONFIG_HOME/bash_completion` or
+For Bash, move `solwalrs.bash` to `$XDG_CONFIG_HOME/bash_completion` or
 `/etc/bash_completion.d/`.<br>
-For Fish, move `solwalrs` to `$HOME/.config/fish/completions/`.<br>
+For Fish, move `solwalrs.fish` to `$HOME/.config/fish/completions/`.<br>
 For the Z shell, move `_solwalrs` to one of your `$fpath` directories.<br>
 For PowerShell, add `. _solwalrs.ps1` to your PowerShell
 [profile](https://technet.microsoft.com/en-us/library/bb613488(v=vs.85).aspx)
 (note the leading period). If the `_solwalrs.ps1` file is not on your `PATH`, do
 `. /path/to/_solwalrs.ps1` instead.<br>
-To generate Solwalrs completions, run `solwalrs completions > solwlars`.<br>
+To generate Solwalrs completions, run `solwalrs completions > <the-name-above-as-your-shell>`.<br>
 
 ## Features
 - Supports multiple keypairs
