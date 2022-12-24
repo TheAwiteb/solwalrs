@@ -44,8 +44,8 @@ impl Tokens {
         Mint(mint_address.parse().unwrap())
     }
 
-    /// Returns the decimals number of the token
-    pub fn decimals(&self) -> f64 {
+    /// Return the lamports per token
+    pub fn lamports_per_token(&self) -> f64 {
         1e6
     }
 }

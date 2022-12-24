@@ -48,7 +48,12 @@ impl BalanceCommand {
         } else {
             println!(
                 "{message} `{}` {token_name}",
-                balance as f64 / self.spl.as_ref().map(|s| s.decimals()).unwrap_or(1e9)
+                balance as f64
+                    / self
+                        .spl
+                        .as_ref()
+                        .map(|s| s.lamports_per_token())
+                        .unwrap_or(1e9)
             );
         }
         Ok(())
