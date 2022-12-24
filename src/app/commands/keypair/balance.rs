@@ -18,7 +18,7 @@ use clap::Parser;
 
 use crate::app::GetKeypairName;
 use crate::errors::Result as SolwalrsResult;
-use crate::wallet::short_public_key;
+use crate::wallet::{short_public_key, Tokens};
 use crate::{app::AppArgs, wallet::Wallet};
 
 #[derive(Parser, Debug)]
@@ -28,22 +28,28 @@ pub struct BalanceCommand {
     /// Whether to show the balance in lamports
     #[clap(short, long)]
     pub lamports: bool,
+    /// The spl token to get the balance of, if not specified, the SOL balance will be shown
+    #[clap(long)]
+    pub spl: Option<Tokens>,
 }
 
 impl BalanceCommand {
     pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         let name = self.name.get_keypair_name(wallet, args)?;
         let keypair = wallet.get_keypair(&name, args)?;
-        let balance = keypair.balance(args)?;
+        let balance = keypair.balance(args, self.spl.as_ref())?;
+        let token_name = self.spl.as_ref().map(|token| token.name()).unwrap_or("SOL");
         let message = format!(
             "The `{}` address has",
             short_public_key(&keypair.public_key)
         );
         if self.lamports {
-            println!("{message} `{balance}` lamports");
+            println!("{message} `{balance}` {token_name} lamports");
         } else {
-            // convert lamports to SOL, 1 SOL = 1e9 lamports
-            println!("{message} `{}` SOL", balance as f64 / 1e9);
+            println!(
+                "{message} `{}` {token_name}",
+                balance as f64 / self.spl.as_ref().map(|s| s.decimals()).unwrap_or(1e9)
+            );
         }
         Ok(())
     }
