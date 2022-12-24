@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-use std::str::FromStr;
-
 use base58::{FromBase58, ToBase58};
 use ed25519_dalek::{PublicKey, SecretKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
-use super::{short_public_key, utils};
+use super::{short_public_key, utils, Tokens};
 use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
@@ -62,6 +60,7 @@ impl Clone for KeyPair {
             name: self.name.clone(),
             // Copy is implemented for PublicKey
             public_key: self.public_key,
+            // SAFETY: We know that the secret key is valid, so we can create a new one from the bytes
             secret_key: SecretKey::from_bytes(&self.secret_key.to_bytes()).unwrap(),
             private_key: self.private_key.clone(),
             is_default: self.is_default,
@@ -245,23 +244,18 @@ impl KeyPair {
     }
 
     /// Get the balance of the keypair
-    pub fn balance(&self, args: &AppArgs) -> SolwalrsResult<u64> {
+    pub fn balance(&self, args: &AppArgs, spl: Option<&Tokens>) -> SolwalrsResult<u64> {
         crate::info!(
             args,
             "Trying to get the balance of the keypair `{}`, `{}`",
             self.name,
             short_public_key(&self.public_key)
         );
-        let balance = utils::rpc_client(args)?
-            .get_balance(&FromStr::from_str(&self.public_key.as_bytes().to_base58()).unwrap())
-            .map_err(|err| SolwalrsError::RpcError(err.to_string()))?;
-        crate::info!(
-            args,
-            "The balance of the keypair `{}` is {} SOL",
-            self.name,
-            balance
-        );
-        Ok(balance)
+        if let Some(token) = spl {
+            utils::spl_balance(args, &self.public_key, token)
+        } else {
+            utils::sol_balance(args, &self.public_key)
+        }
     }
 }
 
