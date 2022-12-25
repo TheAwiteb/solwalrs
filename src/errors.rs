@@ -51,8 +51,12 @@ pub enum Error {
     /// 32 for secret key, 64 for private key
     #[error("Invalid bytes length: {0}. Secret key is 32 bytes, private key is 64 bytes")]
     InvalidBytesLength(usize),
+    /// RPC error
     #[error("RPC error: {0}")]
     RpcError(String),
+    /// Request error
+    #[error("Request error: {0}")]
+    RequestError(String),
     /// Other errors
     #[error("{0}")]
     Other(String),
