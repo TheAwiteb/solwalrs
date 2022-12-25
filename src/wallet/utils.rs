@@ -76,16 +76,23 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
     Ok(())
 }
 
+/// Returns the rpc url
+pub fn rpc_url(args: &AppArgs) -> SolwalrsResult<String> {
+    let url = format!(
+        "{}{}",
+        args.rpc.to_string().trim_end_matches('/'),
+        args.rpc
+            .port()
+            .map(|port| format!(":{}", port))
+            .unwrap_or_default()
+    );
+    Ok(url)
+}
+
 /// Returns the RPC client, if the `--rpc` flag is not set, it will use the default RPC client.
 /// The default RPC client is `https://api.mainnet-beta.solana.com`
 pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
-    if let Some(rpc) = &args.rpc {
-        Ok(RpcClient::new(rpc))
-    } else {
-        Ok(RpcClient::new(
-            "https://api.mainnet-beta.solana.com".to_string(),
-        ))
-    }
+    Ok(RpcClient::new(rpc_url(args)?))
 }
 
 /// Returns the SPL balance of the given public key
@@ -191,17 +198,14 @@ pub fn confirm_signature(args: &AppArgs, signature: &str) -> SolwalrsResult<()> 
 }
 
 /// Retuns the transaction on the explorer, if the rpc is not a known cluster, will return `None`
-pub fn transaction_url(signature: &str, rpc: &str) -> Option<String> {
-    let cluster = if rpc.contains("testnet") {
-        Some("testnet")
-    } else if rpc.contains("devnet") {
-        Some("devnet")
-    } else if rpc.contains("mainnet") {
-        Some("mainnet")
-    } else {
-        None
-    };
-    cluster.map(|cluster| format!("https://explorer.solana.com/tx/{signature}?cluster={cluster}"))
+/// Note: The rpc should include the port, for example: `https://api.mainnet-beta.solana.com:443`
+pub fn transaction_url(signature: &str, rpc: &str) -> String {
+    // encode the rpc url
+    let params = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("cluster", rpc)
+        .append_pair("customUrl", rpc)
+        .finish();
+    format!("https://solana.fm//tx/{signature}?{params}")
 }
 
 /// Returns the SOL balance of the given public key
