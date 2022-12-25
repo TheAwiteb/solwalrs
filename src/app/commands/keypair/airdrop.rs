@@ -18,7 +18,7 @@ use clap::Parser;
 
 use crate::app::GetKeypairName;
 use crate::errors::Result as SolwalrsResult;
-use crate::wallet::{confirm_signature, transaction_url};
+use crate::wallet::{confirm_signature, rpc_url, transaction_url};
 use crate::{app::AppArgs, wallet::Wallet};
 
 /// Request an airdrop to a keypair
@@ -44,18 +44,10 @@ impl AirdropCommand {
             self.amount as u64
         };
         let signature = keypair.request_airdrop(amount, args)?;
-        let rpc = &args
-            .rpc
-            .as_ref()
-            .map(|r| r.to_string())
-            .unwrap_or_else(|| "https://api.mainnet-beta.solana.com".to_owned());
+        let rpc_url = rpc_url(args)?;
         println!(
             "Waiting for airdrop to be confirmed, this may take a while...\n{}",
-            transaction_url(&signature, rpc)
-                .map(|url| format!("Transaction URL: {}", url))
-                .unwrap_or_else(|| format!(
-                "Cannot get the transaction url for the signature `{signature}` in the rpc `{rpc}`"
-            ))
+            transaction_url(&signature, &rpc_url)
         );
         confirm_signature(args, &signature)?;
         println!("Transaction confirmed!");
