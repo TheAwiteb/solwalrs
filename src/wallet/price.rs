@@ -42,6 +42,9 @@ pub struct Price {
     pub success: bool,
     /// Data that contains the price
     pub data: Data,
+    /// The timestamp of the request (in milliseconds since the Unix epoch)
+    #[serde(skip, default = "crate::utils::get_timestamp")]
+    pub timestamp: u64,
 }
 
 impl Price {
@@ -58,8 +61,10 @@ impl Price {
         ))
         .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;
         crate::info!(args, "Got price data {response:?}");
-        response
+        let price = response
             .json::<Self>()
-            .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")))
+            .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")));
+        crate::info_or_warn!(args, price, "Parsed price data {price:?}"; "Failed to parse price data {price:?}");
+        price
     }
 }
