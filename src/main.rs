@@ -24,7 +24,10 @@ mod wallet;
 use clap::Parser;
 use std::process::ExitCode as StdExitCode;
 
-use crate::{app::App, wallet::Wallet};
+use crate::{
+    app::App,
+    wallet::{cache::Cache, Wallet},
+};
 use errors::Result as SolwalrsResult;
 
 fn try_main(app: &App) -> SolwalrsResult<()> {
@@ -37,19 +40,22 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
 
         let mut wallet = Wallet::new();
         let mut password = String::new();
+        let mut cache = Cache::load(&app.args)?;
         if command.needs_wallet() {
             password = utils::get_password()?;
             wallet = Wallet::load(&password, &app.args)?;
         }
 
         match command {
-            Keypair(keypair_command) => keypair_command.run(&mut wallet, &app.args)?,
+            Keypair(keypair_command) => keypair_command.run(&mut wallet, &app.args, &mut cache)?,
             New(new_command) => new_command.run(&mut wallet, &app.args)?,
             List(list_command) => list_command.run(&mut wallet, &app.args)?,
             Import(import_command) => import_command.run(&mut wallet, &app.args)?,
             Completions(completions_command) => completions_command.run(),
             Clean(clean_command) => clean_command.run(&app.args)?,
+            Price(price_command) => price_command.run(&app.args, &mut cache)?,
         };
+        cache.save(&app.args)?;
         if command.needs_wallet() {
             wallet.export(&password, &app.args)?;
         }

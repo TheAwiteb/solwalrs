@@ -31,16 +31,32 @@ use solana_client::rpc_client::RpcClient;
 
 use super::Tokens;
 
-/// Returns `ProjectDirs` containing all the project directories
+/// Returns the project directories
+pub fn project_dirs() -> SolwalrsResult<directories::ProjectDirs> {
+    directories::ProjectDirs::from("com", "solwalrs", "solwalrs")
+        .ok_or_else(|| SolwalrsError::AppDataDir("Failed to get app data directory".to_string()))
+}
+
+/// Returns the path of the app data directory
 pub fn app_data_dir() -> SolwalrsResult<PathBuf> {
-    let proj_dir = directories::ProjectDirs::from("com", "solwalrs", "solwalrs")
-        .ok_or_else(|| SolwalrsError::AppDataDir("Failed to get app data directory".to_string()))?;
+    let proj_dir = project_dirs()?;
     if !proj_dir.data_local_dir().exists() {
         fs::create_dir_all(proj_dir.data_local_dir()).map_err(|err| {
             SolwalrsError::AppDataDir(format!("Failed to create app data directory: {}", err))
         })?;
     }
     Ok(proj_dir.data_local_dir().to_path_buf())
+}
+
+/// Returns the path of the app cache directory
+pub fn app_cache_dir() -> SolwalrsResult<PathBuf> {
+    let proj_dir = project_dirs()?;
+    if !proj_dir.cache_dir().exists() {
+        fs::create_dir_all(proj_dir.cache_dir()).map_err(|err| {
+            SolwalrsError::AppDataDir(format!("Failed to create app cache directory: {}", err))
+        })?;
+    }
+    Ok(proj_dir.cache_dir().to_path_buf())
 }
 
 /// Returns the app data file
@@ -60,9 +76,13 @@ pub fn app_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
             Ok(app_file.to_path_buf())
         }
     } else {
-        let app_data_dir = app_data_dir()?;
-        Ok(app_data_dir.join("solwalrs.json"))
+        app_data_dir().map(|data| data.join("solwalrs.json"))
     }
+}
+
+/// Returns the app cache file
+pub fn app_cache_file_path() -> SolwalrsResult<std::path::PathBuf> {
+    app_cache_dir().map(|cache| cache.join("solwalrs.cache"))
 }
 
 /// Clean the wallet, it will remove the wallet file
@@ -73,6 +93,11 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
     std::fs::remove_file(app_file)
         .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
     crate::info!(args, "Wallet file removed successfully");
+    let cache_file = app_cache_file_path()?;
+    crate::info!(args, "Removing the cache file");
+    std::fs::remove_file(cache_file)
+        .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove cache file: {}", err)))?;
+    crate::info!(args, "Cache file removed successfully");
     Ok(())
 }
 

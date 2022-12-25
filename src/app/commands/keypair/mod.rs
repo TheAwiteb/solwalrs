@@ -26,7 +26,10 @@ pub use balance::BalanceCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
 
-use crate::{errors::Result as SolwalrsResult, wallet::Wallet};
+use crate::{
+    errors::Result as SolwalrsResult,
+    wallet::{cache::Cache, Wallet},
+};
 
 use clap::Subcommand;
 
@@ -48,7 +51,12 @@ pub enum KeypairCommand {
 
 impl KeypairCommand {
     /// Run the command
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(
+        &self,
+        wallet: &mut Wallet,
+        args: &AppArgs,
+        cache: &mut Cache,
+    ) -> SolwalrsResult<()> {
         use KeypairCommand::*;
 
         crate::info!(args, "The keypair command is: {self:?}");
@@ -56,7 +64,7 @@ impl KeypairCommand {
             Delete(command) => command.run(wallet, args)?,
             SetDefault(command) => command.run(wallet, args)?,
             QrCode(command) => command.run(wallet, args)?,
-            Balance(command) => command.run(wallet, args)?,
+            Balance(command) => command.run(wallet, args, cache)?,
             Airdrop(command) => command.run(wallet, args)?,
         };
         Ok(())
