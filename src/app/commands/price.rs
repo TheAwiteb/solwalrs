@@ -16,6 +16,7 @@
 
 use clap::Parser;
 
+use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
 use crate::wallet::{Price, Tokens};
 
@@ -30,8 +31,8 @@ pub struct PriceCommand {
 }
 
 impl PriceCommand {
-    pub fn run(&self) -> SolwalrsResult<()> {
-        let price = Price::new(self.spl.as_ref())?;
+    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
+        let price = Price::new(self.spl.as_ref(), args)?;
         println!(
             "{}: ${}, Price change in the last 24h: {}",
             self.spl.as_ref().map(|t| t.name()).unwrap_or("SOL"),

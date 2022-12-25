@@ -44,7 +44,7 @@ impl BalanceCommand {
             .as_ref()
             .map(Tokens::lamports_per_token)
             .unwrap_or(1e9);
-        let price = Price::new(self.spl.as_ref())?.data.price * (balance as f64 / per_one);
+        let price = Price::new(self.spl.as_ref(), args)?.data.price * (balance as f64 / per_one);
         let token_name = self.spl.as_ref().map(Tokens::name).unwrap_or("SOL");
         let message = format!(
             "The `{}` address has",

@@ -49,7 +49,7 @@ fn try_main(app: &App) -> SolwalrsResult<()> {
             Import(import_command) => import_command.run(&mut wallet, &app.args)?,
             Completions(completions_command) => completions_command.run(),
             Clean(clean_command) => clean_command.run(&app.args)?,
-            Price(price_command) => price_command.run()?,
+            Price(price_command) => price_command.run(&app.args)?,
         };
         if command.needs_wallet() {
             wallet.export(&password, &app.args)?;

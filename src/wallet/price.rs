@@ -17,7 +17,10 @@
 use serde::{Deserialize, Serialize};
 
 use super::Tokens;
-use crate::errors::{Error as SolwalrsError, Result as SolwalrsResult};
+use crate::{
+    app::AppArgs,
+    errors::{Error as SolwalrsError, Result as SolwalrsResult},
+};
 
 const PRICE_API: &str = "https://api.solscan.io/market?symbol=";
 
@@ -43,17 +46,20 @@ pub struct Price {
 
 impl Price {
     /// Returns the price, pass `None` to `token` to get SOL price
-    pub fn new(token: Option<&Tokens>) -> SolwalrsResult<Self> {
+    pub fn new(token: Option<&Tokens>, args: &AppArgs) -> SolwalrsResult<Self> {
+        crate::info!(args, "Getting price data...");
         // Send a GET request to the price API, and parse the response
-        reqwest::blocking::get(&format!(
+        let response = reqwest::blocking::get(&format!(
             "{}{}",
             PRICE_API,
             token
                 .map(|t| t.name().to_uppercase())
                 .unwrap_or_else(|| "SOL".to_owned())
         ))
-        .map_err(|e| SolwalrsError::RequestError(e.to_string()))?
-        .json::<Self>()
-        .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")))
+        .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;
+        crate::info!(args, "Got price data {response:?}");
+        response
+            .json::<Self>()
+            .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")))
     }
 }
