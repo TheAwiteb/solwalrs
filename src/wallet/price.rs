@@ -55,7 +55,7 @@ impl Price {
         crate::info!(args, "Sending request to get price data");
         let symbol = token.map(Tokens::name).unwrap_or("sol").to_uppercase();
         // Send a GET request to the price API, and parse the response
-        let response = reqwest::blocking::get(&format!("{PRICE_API}{symbol}",))
+        let response = reqwest::blocking::get(format!("{PRICE_API}{symbol}",))
             .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;
         crate::info!(args, "Got price data {response:?}");
         let mut price = response
