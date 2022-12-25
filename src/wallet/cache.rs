@@ -66,11 +66,11 @@ impl Cache {
         }
     }
 
-    /// Clear prices from cache, old than 15 minutes
+    /// Clear prices from cache, old than 5 minutes
     /// This is to prevent the cache from getting too big
     pub fn clear_prices(&mut self) {
         self.prices
-            .retain(|price| price.timestamp + (15 * 60) > utils::get_timestamp());
+            .retain(|price| price.timestamp + (5 * 60) > utils::get_timestamp());
     }
 
     /// Add a price to the cache, returns the added price
