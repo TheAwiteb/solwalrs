@@ -14,16 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-mod clean;
-mod completions;
-mod import;
-pub mod keypair;
-mod list;
-mod new;
-mod price;
-pub use clean::CleanCommand;
-pub use completions::CompletionsCommand;
-pub use import::ImportCommand;
-pub use list::ListCommand;
-pub use new::NewCommand;
-pub use price::PriceCommand;
+use clap::Parser;
+
+use crate::errors::Result as SolwalrsResult;
+use crate::wallet::{Price, Tokens};
+
+/// Get the price of a token/SOL in USDT
+#[derive(Debug, Parser)]
+pub struct PriceCommand {
+    /// The name of the keypair to get the balance of (defaults to the default keypair)
+    pub name: Option<String>,
+    /// SPL token to get the price of
+    #[clap(long)]
+    pub spl: Option<Tokens>,
+}
+
+impl PriceCommand {
+    pub fn run(&self) -> SolwalrsResult<()> {
+        let price = Price::new(self.spl.as_ref())?;
+        println!(
+            "{}: ${}, Price change in the last 24h: {}",
+            self.spl.as_ref().map(|t| t.name()).unwrap_or("SOL"),
+            price.data.price,
+            price.data.price_change_24h
+        );
+        Ok(())
+    }
+}
