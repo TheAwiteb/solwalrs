@@ -97,9 +97,10 @@ To generate Solwalrs completions, run `solwalrs completions > <the-name-above-as
 - Auto completion for bash, elvish, fish, powershell and zsh
 - Supports changing the RPC URL
 - Supports SPL tokens
-- View your SOL/SPL balance
+- View your SOL/SPL balance and its value in USDT
 - Airdrop SOL
 - Get the price of SPL/SOL
+- Caching the price of SPL/SOL, every 5 minutes the price will be updated
 
 ## Adding a new SPL token
 Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:
