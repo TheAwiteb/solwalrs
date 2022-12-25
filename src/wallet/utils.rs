@@ -81,8 +81,8 @@ pub fn app_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
 }
 
 /// Returns the app cache file
-pub fn app_cache_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
-    app_cache_dir().map(|cache| cache.join("solwalrs.chache"))
+pub fn app_cache_file_path() -> SolwalrsResult<std::path::PathBuf> {
+    app_cache_dir().map(|cache| cache.join("solwalrs.cache"))
 }
 
 /// Clean the wallet, it will remove the wallet file
@@ -93,6 +93,11 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
     std::fs::remove_file(app_file)
         .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
     crate::info!(args, "Wallet file removed successfully");
+    let cache_file = app_cache_file_path()?;
+    crate::info!(args, "Removing the cache file");
+    std::fs::remove_file(cache_file)
+        .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove cache file: {}", err)))?;
+    crate::info!(args, "Cache file removed successfully");
     Ok(())
 }
 
