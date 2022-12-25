@@ -56,8 +56,8 @@ pub struct AppArgs {
     #[clap(short, long)]
     pub verbose: bool,
     /// RPC URL, default is `https://api.mainnet-beta.solana.com`
-    #[clap(long)]
-    pub rpc: Option<url::Url>,
+    #[clap(long, default_value = "https://api.mainnet-beta.solana.com")]
+    pub rpc: url::Url,
 }
 
 #[derive(Parser, Debug)]
