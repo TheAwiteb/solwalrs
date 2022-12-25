@@ -16,7 +16,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::Tokens;
+use super::{cache::Cache, Tokens};
 use crate::{
     app::AppArgs,
     errors::{Error as SolwalrsError, Result as SolwalrsResult},
@@ -25,7 +25,7 @@ use crate::{
 const PRICE_API: &str = "https://api.solscan.io/market?symbol=";
 
 /// Data that contains the price
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Data {
     /// The price
     #[serde(rename = "priceUsdt")]
@@ -36,35 +36,46 @@ pub struct Data {
 }
 
 /// Price data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Price {
     /// Whether the request was successful
     pub success: bool,
     /// Data that contains the price
     pub data: Data,
     /// The timestamp of the request (in milliseconds since the Unix epoch)
-    #[serde(skip, default = "crate::utils::get_timestamp")]
+    #[serde(default = "crate::utils::get_timestamp")]
     pub timestamp: u64,
+    /// The symbol of the token
+    pub symbol: Option<String>,
 }
 
 impl Price {
-    /// Returns the price, pass `None` to `token` to get SOL price
-    pub fn new(token: Option<&Tokens>, args: &AppArgs) -> SolwalrsResult<Self> {
-        crate::info!(args, "Getting price data...");
+    /// Send request to get the price of a token/SOL in USDT
+    pub fn send_request(token: Option<&Tokens>, args: &AppArgs) -> SolwalrsResult<Self> {
+        crate::info!(args, "Sending request to get price data");
+        let symbol = token.map(Tokens::name).unwrap_or("sol").to_uppercase();
         // Send a GET request to the price API, and parse the response
-        let response = reqwest::blocking::get(&format!(
-            "{}{}",
-            PRICE_API,
-            token
-                .map(|t| t.name().to_uppercase())
-                .unwrap_or_else(|| "SOL".to_owned())
-        ))
-        .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;
+        let response = reqwest::blocking::get(&format!("{PRICE_API}{symbol}",))
+            .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;
         crate::info!(args, "Got price data {response:?}");
-        let price = response
+        let mut price = response
             .json::<Self>()
-            .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")));
-        crate::info_or_warn!(args, price, "Parsed price data {price:?}"; "Failed to parse price data {price:?}");
-        price
+            .map_err(|e| SolwalrsError::Other(format!("Failed to parse price data: {e}")))?;
+        price.symbol = Some(symbol);
+        crate::info!(args, "Parsed price data {price:?}");
+        Ok(price)
+    }
+
+    /// Returns the price, pass `None` to `token` to get SOL price.
+    /// If the lsat price data is less than 15 minutes old, it will be used instead of sending a new request.
+    pub fn get_price(
+        token: Option<&Tokens>,
+        args: &AppArgs,
+        cache: &mut Cache,
+    ) -> SolwalrsResult<Self> {
+        cache
+            .get_price(token, args)
+            .map(|p| Ok(p.clone()))
+            .unwrap_or_else(|| Ok(cache.add_price(Self::send_request(token, args)?).clone()))
     }
 }

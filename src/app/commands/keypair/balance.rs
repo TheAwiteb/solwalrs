@@ -18,6 +18,7 @@ use clap::Parser;
 
 use crate::app::GetKeypairName;
 use crate::errors::Result as SolwalrsResult;
+use crate::wallet::cache::Cache;
 use crate::wallet::{short_public_key, Price, Tokens};
 use crate::{app::AppArgs, wallet::Wallet};
 
@@ -35,7 +36,12 @@ pub struct BalanceCommand {
 }
 
 impl BalanceCommand {
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(
+        &self,
+        wallet: &mut Wallet,
+        args: &AppArgs,
+        cache: &mut Cache,
+    ) -> SolwalrsResult<()> {
         let name = self.name.get_keypair_name(wallet, args)?;
         let keypair = wallet.get_keypair(&name, args)?;
         let balance = keypair.balance(args, self.spl.as_ref())?;
@@ -44,7 +50,8 @@ impl BalanceCommand {
             .as_ref()
             .map(Tokens::lamports_per_token)
             .unwrap_or(1e9);
-        let price = Price::new(self.spl.as_ref(), args)?.data.price * (balance as f64 / per_one);
+        let price = Price::get_price(self.spl.as_ref(), args, cache)?.data.price
+            * (balance as f64 / per_one);
         let token_name = self.spl.as_ref().map(Tokens::name).unwrap_or("SOL");
         let message = format!(
             "The `{}` address has",

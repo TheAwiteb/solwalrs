@@ -22,6 +22,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod cache;
 mod keypair;
 mod price;
 mod spl;

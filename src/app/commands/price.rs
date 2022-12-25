@@ -18,6 +18,7 @@ use clap::Parser;
 
 use crate::app::AppArgs;
 use crate::errors::Result as SolwalrsResult;
+use crate::wallet::cache::Cache;
 use crate::wallet::{Price, Tokens};
 
 /// Get the price of a token/SOL in USDT
@@ -31,8 +32,8 @@ pub struct PriceCommand {
 }
 
 impl PriceCommand {
-    pub fn run(&self, args: &AppArgs) -> SolwalrsResult<()> {
-        let price = Price::new(self.spl.as_ref(), args)?;
+    pub fn run(&self, args: &AppArgs, cache: &mut Cache) -> SolwalrsResult<()> {
+        let price = Price::get_price(self.spl.as_ref(), args, cache)?;
         println!(
             "{}: ${}, Price change in the last 24h: {}",
             self.spl.as_ref().map(|t| t.name()).unwrap_or("SOL"),
