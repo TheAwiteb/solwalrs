@@ -101,6 +101,7 @@ To generate Solwalrs completions, run `solwalrs completions > <the-name-above-as
 - Airdrop SOL
 - Get the price of SPL/SOL
 - Caching the price of SPL/SOL, every 5 minutes the price will be updated
+- Returns the transactions url of the public key, also transaction url for each transaction
 
 ## Adding a new SPL token
 Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:
