@@ -53,7 +53,7 @@ impl Price {
     /// Send request to get the price of a token/SOL in USDT
     pub fn send_request(token: Option<&Tokens>, args: &AppArgs) -> SolwalrsResult<Self> {
         crate::info!(args, "Sending request to get price data");
-        let symbol = token.map(Tokens::name).unwrap_or("sol").to_uppercase();
+        let symbol = token.map(Tokens::name).unwrap_or_else(|| "SOL".to_owned());
         // Send a GET request to the price API, and parse the response
         let response = reqwest::blocking::get(format!("{PRICE_API}{symbol}",))
             .map_err(|e| SolwalrsError::RequestError(e.to_string()))?;

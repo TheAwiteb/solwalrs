@@ -28,8 +28,8 @@ pub enum Tokens {
 
 impl Tokens {
     /// Returns the token name
-    pub const fn name(&self) -> &'static str {
-        self.variant_name()
+    pub fn name(&self) -> String {
+        self.variant_name().to_ascii_uppercase()
     }
     /// Returns the token mint address
     pub fn mint_address(&self) -> TokenAccountsFilter {

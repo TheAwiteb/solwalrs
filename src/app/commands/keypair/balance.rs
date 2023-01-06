@@ -52,7 +52,11 @@ impl BalanceCommand {
             .unwrap_or(1e9);
         let price = Price::get_price(self.spl.as_ref(), args, cache)?.data.price
             * (balance as f64 / per_one);
-        let token_name = self.spl.as_ref().map(Tokens::name).unwrap_or("SOL");
+        let token_name = self
+            .spl
+            .as_ref()
+            .map(Tokens::name)
+            .unwrap_or_else(|| "SOL".to_owned());
         let message = format!(
             "The `{}` address has",
             short_public_key(&keypair.public_key)

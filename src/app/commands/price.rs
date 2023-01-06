@@ -36,7 +36,10 @@ impl PriceCommand {
         let price = Price::get_price(self.spl.as_ref(), args, cache)?;
         println!(
             "{}: ${}, Price change in the last 24h: {}",
-            self.spl.as_ref().map(|t| t.name()).unwrap_or("SOL"),
+            self.spl
+                .as_ref()
+                .map(Tokens::name)
+                .unwrap_or_else(|| "SOL".to_owned()),
             price.data.price,
             price.data.price_change_24h
         );

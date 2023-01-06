@@ -89,7 +89,7 @@ impl Cache {
     /// Get a price from the cache, if it exists, pass `None` to token to get the price of SOL
     pub fn get_price(&self, token: Option<&Tokens>, args: &AppArgs) -> Option<&Price> {
         crate::info!(args, "Getting price from cache");
-        let symbol = token.map(Tokens::name).unwrap_or("sol").to_uppercase();
+        let symbol = token.map(Tokens::name).unwrap_or_else(|| "SOL".to_owned());
         let price = self
             .prices
             .iter()
