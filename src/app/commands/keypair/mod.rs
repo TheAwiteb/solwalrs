@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+mod airdrop;
 mod balance;
 mod default;
 mod delete;
 mod qrcode;
+mod transactions;
 
 pub use self::qrcode::QrCodeCommand;
+pub use airdrop::AirdropCommand;
 pub use balance::BalanceCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
+pub use transactions::TransactionsCommand;
 
-use crate::{errors::Result as SolwalrsResult, wallet::Wallet};
+use crate::{
+    errors::Result as SolwalrsResult,
+    wallet::{cache::Cache, Wallet},
+};
 
 use clap::Subcommand;
 
@@ -40,11 +47,20 @@ pub enum KeypairCommand {
     QrCode(QrCodeCommand),
     #[clap(visible_alias = "b")]
     Balance(BalanceCommand),
+    #[clap(visible_alias = "a")]
+    Airdrop(AirdropCommand),
+    #[clap(visible_alias = "t")]
+    Transactions(TransactionsCommand),
 }
 
 impl KeypairCommand {
     /// Run the command
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(
+        &self,
+        wallet: &mut Wallet,
+        args: &AppArgs,
+        cache: &mut Cache,
+    ) -> SolwalrsResult<()> {
         use KeypairCommand::*;
 
         crate::info!(args, "The keypair command is: {self:?}");
@@ -52,7 +68,9 @@ impl KeypairCommand {
             Delete(command) => command.run(wallet, args)?,
             SetDefault(command) => command.run(wallet, args)?,
             QrCode(command) => command.run(wallet, args)?,
-            Balance(command) => command.run(wallet, args)?,
+            Balance(command) => command.run(wallet, args, cache)?,
+            Airdrop(command) => command.run(wallet, args)?,
+            Transactions(command) => command.run(wallet, args)?,
         };
         Ok(())
     }

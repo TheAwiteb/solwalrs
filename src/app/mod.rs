@@ -56,8 +56,8 @@ pub struct AppArgs {
     #[clap(short, long)]
     pub verbose: bool,
     /// RPC URL, default is `https://api.mainnet-beta.solana.com`
-    #[clap(long)]
-    pub rpc: Option<url::Url>,
+    #[clap(long, default_value = "https://api.mainnet-beta.solana.com")]
+    pub rpc: url::Url,
 }
 
 #[derive(Parser, Debug)]
@@ -73,6 +73,8 @@ pub enum Commands {
     #[clap(visible_alias = "cp")]
     Completions(CompletionsCommand),
     Clean(CleanCommand),
+    #[clap(visible_alias = "p")]
+    Price(PriceCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -88,6 +90,6 @@ impl Commands {
     /// Whether the command needs a wallet
     pub fn needs_wallet(&self) -> bool {
         use Commands::*;
-        !matches!(self, Completions(_) | Clean(_))
+        !matches!(self, Completions(_) | Clean(_) | Price(_))
     }
 }

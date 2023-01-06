@@ -61,24 +61,29 @@ Commands:
   import       Import new keypair by private key or secret key (input prompt) [aliases: i]
   completions  Generate shell completions [aliases: cp]
   clean        Clean the wallet. This will remove all the keypairs from the wallet
+  price        Get the price of a token/SOL in USDT [aliases: p]
   help         Print this message or the help of the given subcommand(s)
 
 Options:
       --app-file <APP_FILE>  The path to the app file
   -v, --verbose              Verbose mode, for debugging
-      --rpc <RPC>            RPC URL, default is `https://api.mainnet-beta.solana.com`
+      --rpc <RPC>            RPC URL, default is `https://api.mainnet-beta.solana.com` [default: https://api.mainnet-beta.solana.com]
   -h, --help                 Print help information (use `--help` for more detail)
   -V, --version              Print version information
 ```
 > Use `solwalrs help <command>` to get more information about a command. For example, `solwalrs help keypair`
 
 ## Auto completion
-You can enable auto completion for bash, elvish, fish, powershell and zsh, Just put the following line in your shell configuration file:
-```bash
-solwalrs completions <shell> | source
-```
-Note: to show the completions of options, you need to type `--` and press tab to show the options.
-For commands, you can just press tab to show the commands.
+You can enable auto completion for bash, fish, powershell and zsh.<br>
+For Bash, move `solwalrs.bash` to `$XDG_CONFIG_HOME/bash_completion` or
+`/etc/bash_completion.d/`.<br>
+For Fish, move `solwalrs.fish` to `$HOME/.config/fish/completions/`.<br>
+For the Z shell, move `_solwalrs` to one of your `$fpath` directories.<br>
+For PowerShell, add `. _solwalrs.ps1` to your PowerShell
+[profile](https://technet.microsoft.com/en-us/library/bb613488(v=vs.85).aspx)
+(note the leading period). If the `_solwalrs.ps1` file is not on your `PATH`, do
+`. /path/to/_solwalrs.ps1` instead.<br>
+To generate Solwalrs completions, run `solwalrs completions > <the-name-above-as-your-shell>`.<br>
 
 ## Features
 - Supports multiple keypairs
@@ -92,7 +97,10 @@ For commands, you can just press tab to show the commands.
 - Auto completion for bash, elvish, fish, powershell and zsh
 - Supports changing the RPC URL
 - Supports SPL tokens
-- View your SOL/SPL balance
+- View your SOL/SPL balance and its value in USDT
+- Airdrop SOL
+- Get the price of SPL/SOL
+- Caching the price of SPL/SOL, every 5 minutes the price will be updated
 
 ## Adding a new SPL token
 Please open an issue and I will add it to the next release. You can also add it yourself by following these steps:

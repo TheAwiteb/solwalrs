@@ -31,16 +31,32 @@ use solana_client::rpc_client::RpcClient;
 
 use super::Tokens;
 
-/// Returns `ProjectDirs` containing all the project directories
+/// Returns the project directories
+pub fn project_dirs() -> SolwalrsResult<directories::ProjectDirs> {
+    directories::ProjectDirs::from("com", "solwalrs", "solwalrs")
+        .ok_or_else(|| SolwalrsError::AppDataDir("Failed to get app data directory".to_string()))
+}
+
+/// Returns the path of the app data directory
 pub fn app_data_dir() -> SolwalrsResult<PathBuf> {
-    let proj_dir = directories::ProjectDirs::from("com", "solwalrs", "solwalrs")
-        .ok_or_else(|| SolwalrsError::AppDataDir("Failed to get app data directory".to_string()))?;
+    let proj_dir = project_dirs()?;
     if !proj_dir.data_local_dir().exists() {
         fs::create_dir_all(proj_dir.data_local_dir()).map_err(|err| {
             SolwalrsError::AppDataDir(format!("Failed to create app data directory: {}", err))
         })?;
     }
     Ok(proj_dir.data_local_dir().to_path_buf())
+}
+
+/// Returns the path of the app cache directory
+pub fn app_cache_dir() -> SolwalrsResult<PathBuf> {
+    let proj_dir = project_dirs()?;
+    if !proj_dir.cache_dir().exists() {
+        fs::create_dir_all(proj_dir.cache_dir()).map_err(|err| {
+            SolwalrsError::AppDataDir(format!("Failed to create app cache directory: {}", err))
+        })?;
+    }
+    Ok(proj_dir.cache_dir().to_path_buf())
 }
 
 /// Returns the app data file
@@ -60,9 +76,13 @@ pub fn app_file_path(args: &AppArgs) -> SolwalrsResult<std::path::PathBuf> {
             Ok(app_file.to_path_buf())
         }
     } else {
-        let app_data_dir = app_data_dir()?;
-        Ok(app_data_dir.join("solwalrs.json"))
+        app_data_dir().map(|data| data.join("solwalrs.json"))
     }
+}
+
+/// Returns the app cache file
+pub fn app_cache_file_path() -> SolwalrsResult<std::path::PathBuf> {
+    app_cache_dir().map(|cache| cache.join("solwalrs.cache"))
 }
 
 /// Clean the wallet, it will remove the wallet file
@@ -73,19 +93,31 @@ pub fn clean_wallet(args: &AppArgs) -> SolwalrsResult<()> {
     std::fs::remove_file(app_file)
         .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove wallet file: {}", err)))?;
     crate::info!(args, "Wallet file removed successfully");
+    let cache_file = app_cache_file_path()?;
+    crate::info!(args, "Removing the cache file");
+    std::fs::remove_file(cache_file)
+        .map_err(|err| SolwalrsError::Wallet(format!("Failed to remove cache file: {}", err)))?;
+    crate::info!(args, "Cache file removed successfully");
     Ok(())
+}
+
+/// Returns the rpc url
+pub fn rpc_url(args: &AppArgs) -> SolwalrsResult<String> {
+    let url = format!(
+        "{}{}",
+        args.rpc.to_string().trim_end_matches('/'),
+        args.rpc
+            .port()
+            .map(|port| format!(":{}", port))
+            .unwrap_or_default()
+    );
+    Ok(url)
 }
 
 /// Returns the RPC client, if the `--rpc` flag is not set, it will use the default RPC client.
 /// The default RPC client is `https://api.mainnet-beta.solana.com`
 pub fn rpc_client(args: &AppArgs) -> SolwalrsResult<RpcClient> {
-    if let Some(rpc) = &args.rpc {
-        Ok(RpcClient::new(rpc))
-    } else {
-        Ok(RpcClient::new(
-            "https://api.mainnet-beta.solana.com".to_string(),
-        ))
-    }
+    Ok(RpcClient::new(rpc_url(args)?))
 }
 
 /// Returns the SPL balance of the given public key
@@ -131,6 +163,88 @@ pub fn spl_balance(args: &AppArgs, public_key: &PublicKey, token: &Tokens) -> So
             "Failed to parse the {token_name} balanace of `{short_pubk}`",
         ))),
     }
+}
+
+/// Request airdrop to the given public key, the amount is in lamports, so 1 SOL = 1_000_000_000 lamports
+#[must_use = "This function returns a signature, you should check if the airdrop was successful"]
+pub fn request_airdrop(
+    args: &AppArgs,
+    public_key: &PublicKey,
+    amount: u64,
+) -> SolwalrsResult<String> {
+    crate::info!(
+        args,
+        "Requesting an airdrop of {} lamports to the keypair `{}`",
+        amount,
+        short_public_key(public_key)
+    );
+    let client = rpc_client(args)?;
+    let pubk = public_key.as_bytes().to_base58();
+    // SAFETY: This is safe because we are sure that the public key is valid
+    let signature = client
+        .request_airdrop(&pubk.parse().unwrap(), amount)
+        .map_err(|err| {
+            SolwalrsError::RpcError(format!(
+                "Error while requesting an airdrop of {} lamports to the keypair `{}`: {err}",
+                amount,
+                short_public_key(public_key)
+            ))
+        })?;
+    crate::info!(
+        args,
+        "Airdrop of {} lamports requested successfully, the singature is `{signature}`",
+        amount
+    );
+
+    Ok(signature.to_string())
+}
+
+/// Confirm the given signature, if the signature is not confirmed, it will wait until it is confirmed
+pub fn confirm_signature(args: &AppArgs, signature: &str) -> SolwalrsResult<()> {
+    crate::info!(args, "Confirming the signature `{signature}`");
+    let client = rpc_client(args)?;
+    loop {
+        // SAFETY: This is safe because we are sure that the signature is valid
+        let status = client
+            .confirm_transaction(&signature.parse().unwrap())
+            .map_err(|err| {
+                SolwalrsError::RpcError(format!(
+                    "Error while getting the status of the airdrop singature `{signature}`: {err}"
+                ))
+            })?;
+        if status {
+            break;
+        }
+        crate::info!(args, "Waiting for the airdrop to be confirmed...");
+        std::thread::sleep(std::time::Duration::from_secs(3));
+    }
+    crate::info!(args, "Signature `{signature}` confirmed successfully");
+    Ok(())
+}
+
+/// Returns the `solana.fm` rpc parameters
+pub fn rpc_params(args: &AppArgs) -> SolwalrsResult<String> {
+    let rpc = rpc_url(args)?;
+    Ok(url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("cluster", &rpc)
+        .append_pair("customUrl", &rpc)
+        .finish())
+}
+
+/// Retuns the transaction on the explorer
+pub fn transaction_url(signature: &str, args: &AppArgs) -> SolwalrsResult<String> {
+    // encode the rpc url
+    let params = rpc_params(args)?;
+    Ok(format!("https://solana.fm//tx/{signature}?{params}"))
+}
+
+/// Returns the `solana.fm` url of the given public key
+pub fn transactions_url(public_key: &PublicKey, args: &AppArgs) -> SolwalrsResult<String> {
+    let params = rpc_params(args)?;
+    Ok(format!(
+        "https://solana.fm/address/{}/transfers?{params}&mode=lite",
+        public_key.as_bytes().to_base58()
+    ))
 }
 
 /// Returns the SOL balance of the given public key

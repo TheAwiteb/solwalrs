@@ -18,12 +18,14 @@ use clap::Parser;
 
 use crate::app::GetKeypairName;
 use crate::errors::Result as SolwalrsResult;
-use crate::wallet::{short_public_key, Tokens};
+use crate::wallet::cache::Cache;
+use crate::wallet::{short_public_key, Price, Tokens};
 use crate::{app::AppArgs, wallet::Wallet};
 
+/// Get the balance of a keypair, SOL/SPL
 #[derive(Parser, Debug)]
 pub struct BalanceCommand {
-    /// The name of the keypair to get the balance of
+    /// The name of the keypair to get the balance of (defaults to the default wallet)
     pub name: Option<String>,
     /// Whether to show the balance in lamports
     #[clap(short, long)]
@@ -34,26 +36,33 @@ pub struct BalanceCommand {
 }
 
 impl BalanceCommand {
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+    pub fn run(
+        &self,
+        wallet: &mut Wallet,
+        args: &AppArgs,
+        cache: &mut Cache,
+    ) -> SolwalrsResult<()> {
         let name = self.name.get_keypair_name(wallet, args)?;
         let keypair = wallet.get_keypair(&name, args)?;
         let balance = keypair.balance(args, self.spl.as_ref())?;
-        let token_name = self.spl.as_ref().map(|token| token.name()).unwrap_or("SOL");
+        let per_one = self
+            .spl
+            .as_ref()
+            .map(Tokens::lamports_per_token)
+            .unwrap_or(1e9);
+        let price = Price::get_price(self.spl.as_ref(), args, cache)?.data.price
+            * (balance as f64 / per_one);
+        let token_name = self.spl.as_ref().map(Tokens::name).unwrap_or("SOL");
         let message = format!(
             "The `{}` address has",
             short_public_key(&keypair.public_key)
         );
         if self.lamports {
-            println!("{message} `{balance}` {token_name} lamports");
+            println!("{message} `{balance}` {token_name} lamports ~${price:.2}");
         } else {
             println!(
-                "{message} `{}` {token_name}",
-                balance as f64
-                    / self
-                        .spl
-                        .as_ref()
-                        .map(|s| s.lamports_per_token())
-                        .unwrap_or(1e9)
+                "{message} `{}` {token_name} ~${price:.2}",
+                balance as f64 / per_one
             );
         }
         Ok(())

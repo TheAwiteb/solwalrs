@@ -14,25 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-use super::errors::{Error as SolwalrsError, Result as SolwalrsResult};
+use clap::Parser;
 
-/// Get the password from stdin, and return it as a String
-pub fn get_password() -> SolwalrsResult<String> {
-    let password = rpassword::prompt_password("Enter the wallet password: ")
-        .map_err(|err| SolwalrsError::Other(format!("Failed to get password: {}", err)))?;
+use crate::app::{AppArgs, GetKeypairName};
+use crate::errors::Result as SolwalrsResult;
+use crate::wallet::{transactions_url, Wallet};
 
-    if password.len() != 32 {
-        return Err(SolwalrsError::InvalidPassword(
-            "The password must be 32 bytes long".to_owned(),
-        ));
-    }
-    Ok(password)
+/// The transactions of a keypair
+#[derive(Debug, Parser)]
+pub struct TransactionsCommand {
+    /// The name of the keypair, defaults to the default keypair
+    pub name: Option<String>,
 }
 
-/// Return current timestamp in seconds (since the UNIX epoch)
-pub fn get_timestamp() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
+impl TransactionsCommand {
+    pub fn run(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+        let name = self.name.get_keypair_name(wallet, args)?;
+        let keypair = wallet.get_keypair(&name, args)?;
+        println!(
+            "Checking the transaction of `{}`\n    Here: {}",
+            name,
+            transactions_url(&keypair.public_key, args)?
+        );
+        Ok(())
+    }
 }
