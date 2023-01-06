@@ -16,40 +16,26 @@
 
 use clap::Parser;
 
-use crate::app::GetKeypairName;
+use crate::app::{AppArgs, GetKeypairName};
 use crate::errors::Result as SolwalrsResult;
-use crate::wallet::{confirm_signature, transaction_url};
-use crate::{app::AppArgs, wallet::Wallet};
+use crate::wallet::{transactions_url, Wallet};
 
-/// Request an airdrop to a keypair
+/// The transactions of a keypair
 #[derive(Debug, Parser)]
-pub struct AirdropCommand {
-    /// The name of the keypair to airdrop to (defaults to the default wallet)
+pub struct TransactionsCommand {
+    /// The name of the keypair, defaults to the default keypair
     pub name: Option<String>,
-    /// The amount to airdrop
-    #[clap(short, long)]
-    pub amount: f64,
-    /// Whether the amount is in lamports
-    #[clap(short, long)]
-    pub lamports: bool,
 }
 
-impl AirdropCommand {
-    pub fn run(&self, wallet: &mut Wallet, args: &AppArgs) -> SolwalrsResult<()> {
+impl TransactionsCommand {
+    pub fn run(&self, wallet: &Wallet, args: &AppArgs) -> SolwalrsResult<()> {
         let name = self.name.get_keypair_name(wallet, args)?;
         let keypair = wallet.get_keypair(&name, args)?;
-        let amount = if !self.lamports {
-            (self.amount * 1e9) as u64
-        } else {
-            self.amount as u64
-        };
-        let signature = keypair.request_airdrop(amount, args)?;
         println!(
-            "Waiting for airdrop to be confirmed, this may take a while...\n{}",
-            transaction_url(&signature, args)?
+            "Checking the transaction of `{}`\n    Here: {}",
+            name,
+            transactions_url(&keypair.public_key, args)?
         );
-        confirm_signature(args, &signature)?;
-        println!("Transaction confirmed!");
         Ok(())
     }
 }

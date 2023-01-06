@@ -19,12 +19,14 @@ mod balance;
 mod default;
 mod delete;
 mod qrcode;
+mod transactions;
 
 pub use self::qrcode::QrCodeCommand;
 pub use airdrop::AirdropCommand;
 pub use balance::BalanceCommand;
 pub use default::DefaultCommand;
 pub use delete::DeleteCommand;
+pub use transactions::TransactionsCommand;
 
 use crate::{
     errors::Result as SolwalrsResult,
@@ -47,6 +49,8 @@ pub enum KeypairCommand {
     Balance(BalanceCommand),
     #[clap(visible_alias = "a")]
     Airdrop(AirdropCommand),
+    #[clap(visible_alias = "t")]
+    Transactions(TransactionsCommand),
 }
 
 impl KeypairCommand {
@@ -66,6 +70,7 @@ impl KeypairCommand {
             QrCode(command) => command.run(wallet, args)?,
             Balance(command) => command.run(wallet, args, cache)?,
             Airdrop(command) => command.run(wallet, args)?,
+            Transactions(command) => command.run(wallet, args)?,
         };
         Ok(())
     }
