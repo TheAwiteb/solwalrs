@@ -1,9 +1,10 @@
 name: Assets
 
-on:
-  release:
-    types:
-      - created
+# Watting the #29369 pull merge to fix the issue (also release) https://github.com/solana-labs/solana/pull/29369
+# on:
+#   release:
+#     types:
+#       - created
 
 jobs:
   asset:
