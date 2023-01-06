@@ -222,15 +222,29 @@ pub fn confirm_signature(args: &AppArgs, signature: &str) -> SolwalrsResult<()> 
     Ok(())
 }
 
-/// Retuns the transaction on the explorer, if the rpc is not a known cluster, will return `None`
-/// Note: The rpc should include the port, for example: `https://api.mainnet-beta.solana.com:443`
-pub fn transaction_url(signature: &str, rpc: &str) -> String {
+/// Returns the `solana.fm` rpc parameters
+pub fn rpc_params(args: &AppArgs) -> SolwalrsResult<String> {
+    let rpc = rpc_url(args)?;
+    Ok(url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("cluster", &rpc)
+        .append_pair("customUrl", &rpc)
+        .finish())
+}
+
+/// Retuns the transaction on the explorer
+pub fn transaction_url(signature: &str, args: &AppArgs) -> SolwalrsResult<String> {
     // encode the rpc url
-    let params = url::form_urlencoded::Serializer::new(String::new())
-        .append_pair("cluster", rpc)
-        .append_pair("customUrl", rpc)
-        .finish();
-    format!("https://solana.fm//tx/{signature}?{params}")
+    let params = rpc_params(args)?;
+    Ok(format!("https://solana.fm//tx/{signature}?{params}"))
+}
+
+/// Returns the `solana.fm` url of the given public key
+pub fn transactions_url(public_key: &PublicKey, args: &AppArgs) -> SolwalrsResult<String> {
+    let params = rpc_params(args)?;
+    Ok(format!(
+        "https://solana.fm/address/{}/transfers?{params}&mode=lite",
+        public_key.as_bytes().to_base58()
+    ))
 }
 
 /// Returns the SOL balance of the given public key
