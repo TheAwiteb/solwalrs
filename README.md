@@ -1,4 +1,4 @@
-[![currencies](https://img.shields.io/badge/BTC,_BCH-blueviolet.svg?logo=bitcoin&style=flat)](https://github.com/TheAwiteb#donating)
+**Deprecation Notice: This project is no longer maintained.**
 
 <div align="center">
     <img src="./logos/solwalrs-logo.png">

@@ -1,12 +1,12 @@
 [package]
 name = "solwalrs"
-description = "A simple and easy to use CLI Solana wallet"
+description = "[deprecated] A simple and easy to use CLI Solana wallet"
 license = "GPL-3.0-only"
 repository = "https://github.com/TheAwiteb/solwalrs"
 readme = "README.md"
 categories = ["command-line-utilities"]
 keywords = ["solana", "wallet", "cli"]
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 
 [dependencies]
